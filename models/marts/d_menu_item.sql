@@ -1,0 +1,31 @@
+WITH flattened_cte AS (SELECT m.menu_item_id                        AS menu_item_id,
+                              m.menu_item_name                      AS menu_item_name,
+                              m.item_category                       AS item_category,
+                              m.item_subcategory                    AS item_subcategory,
+                              m.menu_type_id                        AS menu_type_id,
+                              m.menu_type                           AS menu_type,
+                              m.truck_brand_name                    AS truck_brand_name,
+                              hm.value:is_healthy_flag::BOOLEAN     AS is_healthy,
+                              hm.value:is_dairy_free_flag::BOOLEAN  AS is_dairy_free,
+                              hm.value:is_gluten_free_flag::BOOLEAN AS is_gluten_free,
+                              hm.value:is_nut_free_flag::BOOLEAN    AS has_nuts,
+                              m.cost_of_goods_usd                   AS cost_of_goods_usd,
+                              m.sale_price_usd                      AS sale_price_usd
+                       FROM {{ ref('stg_pos__menu') }} m,
+                            LATERAL FLATTEN(INPUT => m.menu_item_health_metrics_obj:menu_item_health_metrics) hm)
+
+SELECT utilities.udf_generate_surrogate_key(o => OBJECT_CONSTRUCT_KEEP_NULL('menu_item_id', menu_item_id)) AS menu_item_key,
+       fc.menu_item_id,
+       fc.menu_item_name,
+       fc.item_category,
+       fc.item_subcategory,
+       fc.menu_type_id,
+       fc.menu_type,
+       fc.truck_brand_name,
+       fc.is_healthy,
+       fc.is_dairy_free,
+       fc.is_gluten_free,
+       fc.has_nuts,
+       fc.cost_of_goods_usd,
+       fc.sale_price_usd
+FROM flattened_cte fc

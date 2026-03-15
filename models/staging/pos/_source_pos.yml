@@ -1,0 +1,170 @@
+version: 2
+
+sources:
+  - name: raw
+    tables:
+      - name: country
+        columns:
+          - name: country_id
+            data_type: number
+          - name: country
+            data_type: varchar
+          - name: iso_currency
+            data_type: varchar
+          - name: iso_country
+            data_type: varchar
+          - name: city_id
+            data_type: number
+          - name: city
+            data_type: varchar
+          - name: city_population
+            data_type: number
+
+      - name: franchise
+        columns:
+          - name: franchise_id
+            data_type: number
+          - name: first_name
+            data_type: varchar
+          - name: last_name
+            data_type: varchar
+          - name: city
+            data_type: varchar
+          - name: country
+            data_type: varchar
+          - name: e_mail
+            data_type: varchar
+          - name: phone_number
+            data_type: varchar
+
+      - name: location
+        columns:
+          - name: location_id
+            data_type: number
+          - name: placekey
+            data_type: varchar
+          - name: location
+            data_type: varchar
+          - name: city
+            data_type: varchar
+          - name: region
+            data_type: varchar
+          - name: iso_country_code
+            data_type: varchar
+          - name: country
+            data_type: varchar
+
+      - name: menu
+        columns:
+          - name: menu_id
+            data_type: number
+          - name: menu_type_id
+            data_type: number
+          - name: menu_type
+            data_type: varchar
+          - name: truck_brand_name
+            data_type: varchar
+          - name: menu_item_id
+            data_type: number
+          - name: menu_item_name
+            data_type: varchar
+          - name: item_category
+            data_type: varchar
+          - name: item_subcategory
+            data_type: varchar
+          - name: cost_of_goods_usd
+            data_type: number
+          - name: sale_price_usd
+            data_type: number
+          - name: menu_item_health_metrics_obj
+            data_type: variant
+
+      - name: order_detail
+        columns:
+          - name: order_detail_id
+            data_type: number
+          - name: order_id
+            data_type: number
+          - name: menu_item_id
+            data_type: number
+          - name: discount_id
+            data_type: varchar
+          - name: line_number
+            data_type: number
+          - name: quantity
+            data_type: number
+          - name: unit_price
+            data_type: number
+          - name: price
+            data_type: number
+          - name: order_item_discount_amount
+            data_type: varchar
+
+      - name: order_header
+        columns:
+          - name: order_id
+            data_type: number
+          - name: truck_id
+            data_type: number
+          - name: location_id
+            data_type: float
+          - name: customer_id
+            data_type: number
+          - name: discount_id
+            data_type: varchar
+          - name: shift_id
+            data_type: number
+          - name: shift_start_time
+            data_type: time
+          - name: shift_end_time
+            data_type: time
+          - name: order_channel
+            data_type: varchar
+          - name: order_ts
+            data_type: timestamp_ntz
+          - name: served_ts
+            data_type: varchar
+          - name: order_currency
+            data_type: varchar
+          - name: order_amount
+            data_type: number
+          - name: order_tax_amount
+            data_type: varchar
+          - name: order_discount_amount
+            data_type: varchar
+          - name: order_total
+            data_type: number
+
+      - name: truck
+        columns:
+          - name: truck_id
+            data_type: number
+          - name: menu_type_id
+            data_type: number
+          - name: primary_city
+            data_type: varchar
+          - name: region
+            data_type: varchar
+          - name: iso_region
+            data_type: varchar
+          - name: country
+            data_type: varchar
+          - name: iso_country_code
+            data_type: varchar
+          - name: franchise_flag
+            data_type: number
+          - name: year
+            data_type: number
+          - name: make
+            data_type: varchar
+          - name: model
+            data_type: varchar
+          - name: ev_flag
+            data_type: number
+          - name: franchise_id
+            data_type: number
+          - name: truck_opening_date
+            data_type: date
+          - name: truck_type
+            data_type: varchar
+

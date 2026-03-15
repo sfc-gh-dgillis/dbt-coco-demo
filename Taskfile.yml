@@ -1,0 +1,37 @@
+version: '3'
+
+includes:
+  validate-prerequisites: ./tasks/validate-prerequisites/validate-prerequisite-tasks.yml
+  snow-cli:
+    taskfile: ./tasks/snow-cli/snowcli-tasks.yml
+    dir: ./tasks/snow-cli
+  dbt:
+    taskfile: ./tasks/dbt/dbt-tasks.yml
+
+env:
+  ENV_DIR: .env
+
+dotenv: ['{{ .ENV_DIR }}/{{ .DOTENV_FILENAME | default "demo.env" }}']
+
+tasks:
+
+  demo-up:
+    desc: |
+      Usage: `task demo-up` if using the default demo.env file. Use `DOTENV_FILENAME=custom.env task demo-up`
+      if using a custom .env file (filename does not have to be custom.env, but must end with .env).
+
+    cmds:
+      - task: validate-prerequisites:snowcli
+        silent: true
+
+      - task: dbt:create-udf-concatenate-object-values
+        vars:
+          TARGET: dev-keypair-auth
+          ARGS: '{database: dev_dbt_demo, schema: utilities}'
+
+      - task: dbt:test-udf-concatenate-object-values
+        vars:
+          CLI_CONNECTION_NAME: $CLI_CONNECTION_NAME
+          WAREHOUSE: dbt_demo_xs_wh
+          DATABASE_NAME: dev_dbt_demo
+          SCHEMA_NAME: utilities

@@ -1,0 +1,39 @@
+version: 2
+
+sources:
+  - name: raw
+    tables:
+      - name: customer_loyalty
+        columns:
+          - name: customer_id
+            data_type: number
+          - name: first_name
+            data_type: varchar
+          - name: last_name
+            data_type: varchar
+          - name: city
+            data_type: varchar
+          - name: country
+            data_type: varchar
+          - name: postal_code
+            data_type: varchar
+          - name: preferred_language
+            data_type: varchar
+          - name: gender
+            data_type: varchar
+          - name: favourite_brand
+            data_type: varchar
+          - name: marital_status
+            data_type: varchar
+          - name: children_count
+            data_type: varchar
+          - name: sign_up_date
+            data_type: date
+          - name: birthday_date
+            data_type: date
+          - name: e_mail
+            data_type: varchar
+          - name: phone_number
+            data_type: varchar
+          - name: last_update_ts
+            data_type: timestamp

@@ -1,0 +1,40 @@
+# Ignore all
+*
+
+# Unignore all with extensions
+!*.*
+
+# Unignore all directories
+!*/
+
+# Unignore Dockerfile
+!Dockerfile
+
+### Above combination will ignore all files without extension ###
+
+# vs code related files
+.vscode/
+tasks.json
+
+# IntelliJ PyCharm, etc. directory and files
+.idea/
+
+# OS generated files
+.DS_Store
+
+# Binaries for programs and plugins
+*.exe
+*.dll
+*.so
+*.dylib
+
+# virtual environment
+.venv
+
+# dbt directories
+dbt_packages/
+target/
+logs/
+
+# .env files
+.env

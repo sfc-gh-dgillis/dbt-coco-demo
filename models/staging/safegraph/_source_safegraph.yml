@@ -1,0 +1,68 @@
+version: 2
+
+sources:
+  - name: raw
+    tables:
+      - name: core_poi_geometry
+        columns:
+          - name: placekey
+            data_type: varchar
+          - name: parent_placekey
+            data_type: varchar
+          - name: safegraph_brand_ids
+            data_type: varchar
+          - name: location_name
+            data_type: varchar
+          - name: brands
+            data_type: varchar
+          - name: store_id
+            data_type: varchar
+          - name: top_category
+            data_type: varchar
+          - name: sub_category
+            data_type: varchar
+          - name: naics_code
+            data_type: number
+          - name: latitude
+            data_type: float
+          - name: longitude
+            data_type: float
+          - name: street_address
+            data_type: varchar
+          - name: city
+            data_type: varchar
+          - name: region
+            data_type: varchar
+          - name: postal_code
+            data_type: varchar
+          - name: open_hours
+            data_type: variant
+          - name: category_tags
+            data_type: varchar
+          - name: opened_on
+            data_type: varchar
+          - name: closed_on
+            data_type: varchar
+          - name: tracking_closed_since
+            data_type: varchar
+          - name: geometry_type
+            data_type: varchar
+          - name: polygon_wkt
+            data_type: varchar
+          - name: polygon_class
+            data_type: varchar
+          - name: enclosed
+            data_type: boolean
+          - name: phone_number
+            data_type: varchar
+          - name: is_synthetic
+            data_type: boolean
+          - name: includes_parking_lot
+            data_type: boolean
+          - name: iso_country_code
+            data_type: varchar
+          - name: wkt_area_sq_meters
+            data_type: float
+          - name: country
+            data_type: varchar
+

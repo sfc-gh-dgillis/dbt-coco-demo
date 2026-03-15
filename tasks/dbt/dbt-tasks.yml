@@ -1,0 +1,33 @@
+version: '3'
+
+tasks:
+
+  debug:
+    cmds:
+      - dbt debug --target dev-tastyb --project-dir .
+
+  create-udf-concatenate-object-values:
+    cmds:
+      - dbt run-operation create_udf_concatenate_object_values --target "{{.TARGET}}" --args "{{.ARGS}}"
+
+  test-udf-concatenate-object-values:
+    cmds:
+      - echo "WTF"
+#      - snow sql -c der -q "use warehouse dbt_demo_xs_wh; select dev_dbt_demo.utilities.udf_concatenate_object_values(to_object(parse_json('{\"key1\": \"value1\", \"key2\": \"value2\"}')));"
+
+  build-all:
+    cmds:
+      - dbt build --target dev-tastyb --project-dir .
+
+  build-country-dimension:
+    cmds:
+      - dbt build --target dev-tastyb --project-dir . --select d_country
+
+  docs-generate-and-serve:
+    cmds:
+      - dbt docs generate --target dev-tastyb --project-dir .
+      - dbt docs serve --target dev-tastyb --project-dir .
+
+#  generate-base-model:
+#    cmds:
+#      - dbt --quiet run-operation generate_base_model --args '{"source_name": "raw", "table_name": "core_poi_geometry"}' > models/staging/safegraph/stg_safegraph__core_poi_geometry.sql

@@ -1,0 +1,425 @@
+version: 2
+
+models:
+  - name: d_country
+    description: Dimension table containing country and city reference data with ISO standard codes for currency and country identification.
+    columns:
+      - name: country_key
+        description: Surrogate key generated from country_id and city_id composite natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: country_id
+        description: Natural key identifier for the country.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: country_name
+        description: Full name of the country.
+        data_type: VARCHAR
+      - name: iso_currency_alpha_cd
+        description: ISO 4217 currency code (e.g., USD, EUR) for the country's primary currency.
+        data_type: VARCHAR
+      - name: iso_country_alpha_2_cd
+        description: ISO 3166-1 alpha-2 two-letter country code (e.g., US, GB).
+        data_type: VARCHAR
+      - name: city_id
+        description: Natural key identifier for the city within the country.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: city_name
+        description: Name of the city.
+        data_type: VARCHAR
+      - name: city_population
+        description: Population count of the city.
+        data_type: NUMBER
+
+  - name: d_franchise
+    description: Dimension table containing franchise owner information including contact details and location.
+    columns:
+      - name: franchise_key
+        description: Surrogate key generated from franchise_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: franchise_id
+        description: Natural key identifier for the franchise.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: first_name
+        description: First name of the franchise owner.
+        data_type: VARCHAR
+      - name: last_name
+        description: Last name of the franchise owner.
+        data_type: VARCHAR
+      - name: city
+        description: City where the franchise owner is located.
+        data_type: VARCHAR
+      - name: country
+        description: Country where the franchise owner is located.
+        data_type: VARCHAR
+      - name: e_mail
+        description: Email address of the franchise owner.
+        data_type: VARCHAR
+      - name: phone_number
+        description: Phone number of the franchise owner.
+        data_type: VARCHAR
+
+  - name: d_location
+    description: Dimension table containing food truck service location information including geographic identifiers.
+    columns:
+      - name: location_key
+        description: Surrogate key generated from location_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: location_id
+        description: Natural key identifier for the location.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: placekey
+        description: Universal place identifier for joining with external location datasets.
+        data_type: VARCHAR
+      - name: location_name
+        description: Descriptive name of the service location.
+        data_type: VARCHAR
+      - name: city
+        description: City where the location is situated.
+        data_type: VARCHAR
+      - name: region
+        description: Region or state where the location is situated.
+        data_type: VARCHAR
+      - name: iso_country_code
+        description: ISO country code for the location's country.
+        data_type: VARCHAR
+      - name: country
+        description: Full country name of the location.
+        data_type: VARCHAR
+
+  - name: d_loyalty_member
+    description: Dimension table containing customer loyalty program member information including demographics and contact details. Incrementally loaded based on last_update_ts.
+    columns:
+      - name: customer_id
+        description: Natural key identifier for the loyalty member.
+        data_type: NUMBER
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: first_name
+        description: First name of the loyalty member.
+        data_type: VARCHAR
+      - name: last_name
+        description: Last name of the loyalty member.
+        data_type: VARCHAR
+      - name: city
+        description: City of residence for the loyalty member.
+        data_type: VARCHAR
+      - name: country
+        description: Country of residence for the loyalty member.
+        data_type: VARCHAR
+      - name: postal_code
+        description: Postal or ZIP code for the loyalty member's address.
+        data_type: VARCHAR
+      - name: preferred_language
+        description: Preferred language for communication with the loyalty member.
+        data_type: VARCHAR
+      - name: gender
+        description: Gender of the loyalty member.
+        data_type: VARCHAR
+      - name: favourite_brand
+        description: Loyalty member's preferred food truck brand.
+        data_type: VARCHAR
+      - name: marital_status
+        description: Marital status of the loyalty member.
+        data_type: VARCHAR
+      - name: children_count
+        description: Number of children the loyalty member has.
+        data_type: NUMBER
+      - name: sign_up_date
+        description: Date when the customer joined the loyalty program.
+        data_type: DATE
+      - name: birthday_date
+        description: Birth date of the loyalty member.
+        data_type: DATE
+      - name: e_mail
+        description: Email address of the loyalty member.
+        data_type: VARCHAR
+      - name: phone_number
+        description: Phone number of the loyalty member.
+        data_type: VARCHAR
+      - name: last_update_ts
+        description: Timestamp of the last update to the loyalty member record, used for incremental loading.
+        data_type: TIMESTAMP_NTZ
+        constraints:
+          - type: not_null
+
+  - name: d_menu_item
+    description: Dimension table containing menu item details including pricing, dietary flags, and categorization.
+    columns:
+      - name: menu_item_key
+        description: Surrogate key generated from menu_item_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: menu_item_id
+        description: Natural key identifier for the menu item.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: menu_item_name
+        description: Display name of the menu item.
+        data_type: VARCHAR
+      - name: item_category
+        description: High-level category of the menu item (e.g., Main, Dessert, Beverage).
+        data_type: VARCHAR
+      - name: item_subcategory
+        description: Subcategory providing more specific classification within the category.
+        data_type: VARCHAR
+      - name: menu_type_id
+        description: Foreign key to the menu type dimension.
+        data_type: NUMBER
+        constraints:
+          - type: foreign_key
+            expression: "d_menu_type (menu_type_id)"
+        tests:
+          - relationships:
+              to: ref('d_menu_type')
+              field: menu_type_id
+      - name: menu_type
+        description: Type or theme of the menu this item belongs to.
+        data_type: VARCHAR
+      - name: truck_brand_name
+        description: Name of the food truck brand offering this menu item.
+        data_type: VARCHAR
+      - name: is_healthy
+        description: Flag indicating whether the item is considered a healthy option.
+        data_type: BOOLEAN
+      - name: is_dairy_free
+        description: Flag indicating whether the item is dairy-free.
+        data_type: BOOLEAN
+      - name: is_gluten_free
+        description: Flag indicating whether the item is gluten-free.
+        data_type: BOOLEAN
+      - name: has_nuts
+        description: Flag indicating whether the item contains nuts.
+        data_type: BOOLEAN
+      - name: cost_of_goods_usd
+        description: Cost of goods sold for the menu item in US dollars.
+        data_type: NUMBER
+      - name: sale_price_usd
+        description: Selling price of the menu item in US dollars.
+        data_type: NUMBER
+
+  - name: d_menu_item_ingredients
+    description: Bridge table linking menu items to their ingredients, enabling many-to-many relationship between items and ingredients.
+    columns:
+      - name: menu_item_ingredient_key
+        description: Surrogate key generated from menu_item_id and ingredient_name composite key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: menu_item_key
+        description: Foreign key to the menu item dimension.
+        data_type: VARCHAR
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            expression: "d_menu_item (menu_item_key)"
+        tests:
+          - relationships:
+              to: ref('d_menu_item')
+              field: menu_item_key
+      - name: ingredient_name
+        description: Name of the ingredient used in the menu item.
+        data_type: VARCHAR
+        constraints:
+          - type: not_null
+
+  - name: d_menu_type
+    description: Dimension table containing menu type classifications used to group menu items by theme or cuisine type.
+    columns:
+      - name: menu_type_key
+        description: Surrogate key generated from menu_type_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: menu_type_id
+        description: Natural key identifier for the menu type.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: menu_type
+        description: Descriptive name of the menu type (e.g., American, Mexican, Asian).
+        data_type: VARCHAR
+
+  - name: d_truck
+    description: Dimension table containing food truck vehicle information including make, model, and operational details.
+    columns:
+      - name: truck_key
+        description: Surrogate key generated from truck_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: truck_id
+        description: Natural key identifier for the truck.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: truck_year
+        description: Model year of the truck vehicle.
+        data_type: NUMBER
+      - name: truck_make
+        description: Manufacturer of the truck vehicle.
+        data_type: VARCHAR
+      - name: truck_model
+        description: Model name of the truck vehicle.
+        data_type: VARCHAR
+      - name: truck_type
+        description: Type classification of the truck (e.g., food truck, trailer).
+        data_type: VARCHAR
+      - name: is_electric
+        description: Flag indicating whether the truck is an electric vehicle.
+        data_type: BOOLEAN
+      - name: truck_opening_date
+        description: Date when the truck began operations.
+        data_type: DATE
+
+  - name: f_order
+    description: Fact table containing order header information including order totals, timestamps, and foreign keys to dimension tables.
+    columns:
+      - name: order_key
+        description: Surrogate key generated from order_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: order_id
+        description: Natural key identifier for the order.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: truck_key
+        description: Foreign key to the truck dimension.
+        data_type: VARCHAR
+        constraints:
+          - type: foreign_key
+            expression: "d_truck (truck_key)"
+        tests:
+          - relationships:
+              to: ref('d_truck')
+              field: truck_key
+      - name: location_key
+        description: Foreign key to the location dimension.
+        data_type: VARCHAR
+        constraints:
+          - type: foreign_key
+            expression: "d_location (location_key)"
+        tests:
+          - relationships:
+              to: ref('d_location')
+              field: location_key
+      - name: customer_key
+        description: Foreign key to the loyalty member dimension (customer_id).
+        data_type: VARCHAR
+        constraints:
+          - type: foreign_key
+            expression: "d_loyalty_member (customer_id)"
+      - name: shift_id
+        description: Degenerate dimension identifying the work shift during which the order was placed.
+        data_type: NUMBER
+      - name: order_currency
+        description: Degenerate dimension containing the currency code for the order.
+        data_type: VARCHAR
+      - name: order_ts
+        description: Timestamp when the order was placed.
+        data_type: TIMESTAMP_NTZ
+      - name: shift_start_time
+        description: Start time of the shift during which the order was placed.
+        data_type: TIME
+      - name: shift_end_time
+        description: End time of the shift during which the order was placed.
+        data_type: TIME
+      - name: order_amount
+        description: Subtotal amount of the order before any adjustments (additive fact).
+        data_type: NUMBER
+      - name: order_total
+        description: Final total amount of the order including all adjustments (additive fact).
+        data_type: NUMBER
+
+  - name: f_order_line
+    description: Fact table containing order line item details including quantities, prices, and links to parent order and menu item dimensions.
+    columns:
+      - name: order_line_key
+        description: Surrogate key generated from order_detail_id natural key.
+        data_type: VARCHAR
+        constraints:
+          - type: primary_key
+          - type: not_null
+        tests:
+          - unique
+      - name: order_detail_id
+        description: Natural key identifier for the order line item.
+        data_type: NUMBER
+        constraints:
+          - type: not_null
+      - name: order_key
+        description: Foreign key to the parent order fact table.
+        data_type: VARCHAR
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            expression: "f_order (order_key)"
+        tests:
+          - relationships:
+              to: ref('f_order')
+              field: order_key
+      - name: menu_item_key
+        description: Foreign key to the menu item dimension.
+        data_type: VARCHAR
+        constraints:
+          - type: foreign_key
+            expression: "d_menu_item (menu_item_key)"
+        tests:
+          - relationships:
+              to: ref('d_menu_item')
+              field: menu_item_key
+      - name: line_number
+        description: Degenerate dimension indicating the sequence number of this line within the order.
+        data_type: NUMBER
+      - name: quantity
+        description: Number of units ordered for this line item (additive fact).
+        data_type: NUMBER
+      - name: line_amount
+        description: Total amount for this line item calculated as quantity times unit price (additive fact).
+        data_type: NUMBER
+      - name: unit_price
+        description: Price per unit for the menu item on this line (non-additive fact).
+        data_type: NUMBER
