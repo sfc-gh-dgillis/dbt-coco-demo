@@ -38,3 +38,4 @@ logs/
 
 # .env files
 .env
+dbt_internal_packages/

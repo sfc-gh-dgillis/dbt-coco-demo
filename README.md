@@ -1,270 +1,321 @@
-# dbt-demo
+# dbt-coco-demo
 
-Welcome to the Snowflake dbt-demo project!
+A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstrate Cortex Code CLI and dbt capabilities.
 
-This project's structure is modeled after dbt's [How we structure our dbt projects](https://docs.getdbt.com/guides/best-practices/how-we-structure/1-guide-overview) best practices guide and extended to meet Snowflake standards and methodologies.
+> **First time setup?** See [Environment Setup](#environment-setup) at the end of this document.
 
-## Sections
+## Quick Start
 
-- [Minimum Requirements](#minimum-requirements)
-- [Getting Started](#getting-started)
-  - [Get the Code](#get-the-code)
-  - [Local dbt Installation (MacOS)](#local-dbt-installation-macos)
-    - [Python Setup](#python-setup)
-      - [Step 1 - Download and install python](#step-1---download-and-install-python)
-      - [Step 2 - Install SSL root certificates](#step-2---install-ssl-root-certificates)
-      - [Step 3 - Setup python and pip aliases](#step-3---setup-python-and-pip-aliases)
-      - [Step 4 - pip configuration](#step-4---pip-configuration)
-      - [Step 5 - Require virtual environments](#step-5---require-virtual-environments)
-    - [dbt Setup](#dbt-setup)
-      - [Virtual Environment dbt Installation](#virtual-environment-dbt-installation)
-      - [Connection Profile Setup](#connection-profile-setup)
-- [Running dbt](#running-dbt)
-- [dbt Code Generation](#dbt-code-generation)
-  - [Generating Source YAML from the command line](#generating-source-yaml-from-the-command-line)
-  - [Generating Staging Model for a source from the command line](#generating-staging-model-for-a-source-from-the-command-line)
-  - [Generating Model YAML from the command line](#generating-model-yaml-from-the-command-line)
+```bash
+# Activate virtual environment
+source .venv/bin/activate
 
-## Minimum Requirements
+# Verify connection
+dbt debug
+
+# Build all models
+dbt build
+```
+
+---
+
+## Cortex Code CLI Demo Script
+
+**Scenario:** You just inherited a dbt project from a colleague. You've never seen it before. Use Cortex Code to understand it, improve it, and extend it -- all from the CLI.
+
+**Repo:** `dbt-coco-demo` (Tasty Bytes food truck analytics)
+
+**Total time:** ~10-12 minutes
+
+---
+
+## Pre-Demo Setup
+
+1. Open a terminal in your IDE of choice in the `dbt-coco-demo` project directory
+2. Ensure `cortex` CLI is installed and authenticated
+3. Verify the dbt virtual environment works: `source .venv/bin/activate && dbt debug`
+4. Have Snowflake open in a browser tab (optional, for showing results in Snowsight)
+
+---
+
+## Act 1: Orientation (~2 min)
+
+> **Story:** "I just cloned this repo from a teammate who left the company. I have no idea what it does."
+
+### Prompt 1: Explore the project
+
+```
+What is this dbt project? Give me a summary of the data domain, the sources,
+the model layers, and any custom macros or UDFs.
+```
+
+**What the audience sees:** Cortex Code reads `dbt_project.yml`, the source YAMLs, the staging models, the mart models, and the macros. It synthesizes a clear summary:
+
+- Tasty Bytes food truck company
+- 3 source systems: POS (7 tables), Customer Loyalty (1 table), SafeGraph (1 table)
+- 2-layer DAG: staging views -> mart tables (dimensional model)
+- Custom UDFs for surrogate key generation and VARIANT flattening
+- Uses `codegen` and `dbt_utils` packages
+
+### Prompt 2: Understand lineage
+
+```
+What does the f_order_line model depend on? Trace the full lineage back to raw sources.
+```
+
+**What the audience sees:** Cortex Code uses the dbt skill to show:
+
+```
+raw.order_detail -> stg_pos__order_detail -> f_order_line
+raw.order_header -> stg_pos__order_header -> f_order (parent fact)
+```
+
+**Key talking point:** "I didn't have to read a single file. Cortex Code understands dbt project structure natively."
+
+---
+
+## Act 2: Code Quality & Testing (~3 min)
+
+> **Story:** "This project has no contracts, constraints and zero tests. That's a problem. Let's fix it."
+
+### Prompt 3: Add schema.yml
+
+```text
+This project has no model and column properties defined for the mart models. Add a schema.yml file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Again, do your best to write descriptions for each column.
+```
+
+**What the audience sees:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/schema.yml` with:
+
+- Model-level `name` and `description` for all 10 mart models
+- Column-level `name`, `description`, and `data_type` for every column
+- `primary_key`, `foreign_key`, and `not_null` constraints where appropriate
+
+**Key talking point:** "It inferred descriptions and constraints from context -- column names, data types, and relationships to other models."
+
+### Prompt 4: Add Tests and Think Through Something
+
+Often times when building, I ask questions of the Cortex Code that I may be pretty sure of, but it can help validate my thinking.
+
+```text
+This project has no tests for the mart models. Add tests for all mart models. Include unique tests on all primary keys, and relationship tests where foreign keys reference other mart dimensions. Also, I am considering adding not_null tests, but that seems redundant considering added not_null constraints and in Snowflake these are actually enforced. What do you think?
+```
+
+**What the audience sees:** Cortex Code adds dbt tests to the schema.yml:
+
+- `unique` tests on every primary key
+- `relationships` tests linking foreign keys (e.g., `f_order.truck_key` -> `d_truck.truck_key`)
+
+It also provides a thoughtful response about not_null tests vs constraints -- explaining that while Snowflake enforces NOT NULL constraints at write time, dbt tests catch issues in upstream data *before* it hits the table, so there's value in both approaches depending on your data quality strategy.
+
+**Key talking point:** "Cortex Code isn't just a code generator -- it can reason about tradeoffs and help you make informed decisions."
+
+### Prompt 5: Build empty models
+
+```
+Build the mart models with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
+```
+
+**What the audience sees:** Cortex Code runs `dbt build --select marts --empty` which creates the table structures without loading data. This is fast and ensures the schema exists for relationship tests to validate against.
+
+**Key talking point:** "The --empty flag is a dbt trick for quickly validating schema and relationships without waiting for data to load."
+
+### Prompt 6: Run the tests
+
+```
+Run dbt test for the marts models
+```
+
+**What the audience sees:** Cortex Code runs `dbt test --select marts` and shows pass/fail results. If any fail, it diagnoses and fixes them live (which is actually a *better* demo moment than all passing).
+
+**Key talking point:** "Cortex Code doesn't just write files -- it operates the dbt CLI and reacts to results."
+
+---
+
+## Act 3: New Feature Build (~3-4 min)
+
+> **Story:** "The business team wants a daily sales summary. Let's build it."
+
+### Prompt 6: Build a new model
+
+```
+Build a new mart model called f_daily_sales_summary that aggregates daily revenue
+by truck, location, and menu item. It should follow the existing conventions in this project -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
+```
+
+**What the audience sees:** Cortex Code:
+
+1. Writes `models/marts/f_daily_sales_summary.sql` joining `f_order`, `f_order_line`, and the relevant dimensions
+2. Adds the model to `models/marts/schema.yml` with tests
+3. Runs `dbt compile --select f_daily_sales_summary` to validate
+4. Runs `dbt run --select f_daily_sales_summary` to materialize it
+
+**Key talking point:** "It matched the existing surrogate key pattern, the naming conventions, even the SQL formatting -- because it read the other models first."
+
+### Prompt 7: Query the results
+
+```
+Show me the top 10 days by total revenue from f_daily_sales_summary
+```
+
+**What the audience sees:** Cortex Code runs a SQL query directly against Snowflake and returns a formatted result table -- no context switching to another tool.
+
+---
+
+## Act 4: Ad-Hoc Data Exploration (~1-2 min)
+
+> **Story:** "While I'm here, let me answer a few quick business questions."
+
+### Prompt 8: Business question
+
+```
+What are the top 5 menu items by total revenue?
+```
+
+**What the audience sees:** Cortex Code writes and executes a query joining `f_order_line` with `d_menu_item`, returning results like:
+
+| menu_item_name | total_revenue |
+|---|---|
+| Lobster Mac & Cheese | $X,XXX,XXX |
+| ... | ... |
+
+### Prompt 9: Another business question
+
+```
+How many loyalty members signed up each year?
+```
+
+**What the audience sees:** A quick query against `d_loyalty_member` grouped by year.
+
+**Key talking point:** "No SQL IDE needed. I can explore data, build models, and run tests all in one place."
+
+---
+
+## Act 5 (Bonus): Documentation (~1-2 min)
+
+> **Story:** "Let's also clean up the source definitions while we're at it."
+
+### Prompt 11: Add descriptions
+
+```
+Add meaningful column descriptions to the POS source YAML in
+models/staging/pos/_source_pos.yml. Infer descriptions from the column names
+and data types.
+```
+
+**What the audience sees:** Cortex Code updates the source YAML with human-readable descriptions for every column across all 7 POS tables.
+
+**Key talking point:** "Documentation is the thing nobody wants to do. Now there's no excuse."
+
+---
+
+## Act 6 (Bonus): Git Workflow (~30 sec)
+
+> **Story:** "Let's commit all of this."
+
+### Prompt 11: Commit
+
+```
+Commit all changes with an appropriate message
+```
+
+**What the audience sees:** Cortex Code stages the new/modified files and creates a well-formatted commit message summarizing everything that was done.
+
+---
+
+## Closing Talking Points
+
+1. **Native dbt understanding** -- Cortex Code knows about sources, refs, models, tests, and lineage out of the box via the dbt skill
+2. **Convention-aware** -- It reads existing code and matches style, frameworks, and patterns automatically
+3. **Full lifecycle** -- Explore -> Test -> Build -> Query -> Document -> Commit, all without leaving the CLI
+4. **Snowflake-native** -- Direct SQL execution against Snowflake, no extra configuration needed
+5. **Time savings** -- What we just did in 10 minutes would take a developer 2-4 hours manually
+
+---
+
+## Troubleshooting / Backup Plans
+
+| If this happens... | Do this... |
+|---|---|
+| `dbt test` fails | Let Cortex Code diagnose and fix it live -- this is actually a great demo moment |
+| Snowflake connection issues | Pre-run `dbt debug` before the demo to verify connectivity |
+| Model compilation error | Ask Cortex Code to fix it -- shows iterative problem-solving |
+| Running low on time | Skip Acts 5-6 (bonus) and go straight to closing |
+| Audience asks "can it do X?" | Try it live -- Cortex Code handles unexpected prompts well |
+
+---
+
+## dbt Code Generation
+
+The [dbt-codegen package](https://github.com/dbt-labs/dbt-codegen) provides tools for generating model YAML and SQL.
+
+### Generating Source YAML from the command line
+
+```shell
+dbt --quiet run-operation generate_source --args '{"schema_name": "raw", "table_names":["country","franchise","location","menu","order_detail","order_header","truck"], "generate_columns": true}' > models/staging/pos/_source_pos.yml
+```
+
+### Generating Staging Model for a source from the command line
+
+```shell
+dbt --quiet run-operation generate_base_model --args '{"source_name": "raw", "table_name": "customer_loyalty"}' > models/staging/loyalty/stg_loyalty__customer_loyalty.sql
+```
+
+### Generating Model YAML from the command line
+
+```shell
+dbt run-operation generate_model_yaml --args '{"model_names": ["model_name"], "upstream_descriptions": True, "include_data_types": True}'
+```
+
+---
+
+## Environment Setup
+
+### Minimum Requirements
 
 - [git](https://git-scm.com/)
-
-There are two options to run dbt locally - you can download the dbt client directly or run dbt in a container. In either path, you must install git.
-
-## Getting Started
-
-The following are basic instructions for getting started with dbt.
+- [Python 3.9+](https://www.python.org/downloads/)
+- [uv](https://docs.astral.sh/uv/) - Python package and project manager
 
 ### Get the Code
 
-Clone the project locally in order to run dbt and make changes using [git](https://git-scm.com/).
-
-Navigate to the local directory you wish to clone this project and issue the following:
-
 ```shell
-git clone https://github.com/sfc-gh-dgillis/dbt-demo.git
+git clone https://github.com/sfc-gh-dgillis/dbt-coco-demo.git
+cd dbt-coco-demo
 ```
 
-A `dbt-demo` directory will be created. This is now your project root.
+### Virtual Environment Setup
 
-### Local dbt Installation (MacOS)
-
-#### Python Setup
-
-##### Step 1 - Download and install python
-
-Install [python3](https://www.python.org/downloads/)
-
-- `python3` comes with the [pip3](https://en.wikipedia.org/wiki/Pip_(package_manager)) package manager
-
-##### Step 2 - Install SSL root certificates
-
-Per the installation instructions:
-
-- To verify the identity of secure network connections, this Python needs a set of SSL root certificates.  You can download and install a current curated set from [the Certifi project](https://pypi.org/project/certifi/) by double-clicking on the `Install Certificates` icon in [the Finder window](file://localhost/Applications/Python%203.12/).  See the [ReadMe](file://localhost/Applications/Python%203.12/ReadMe.rtf) file for more information.
-
-> Note: The above instructions are for a Mac. Windows is likely similar - they will be given at the end of the installation.
-
-##### Step 3 - Setup python and pip aliases
-
-All python and pip commands should start with `python3` or `pip3`, but if you prefer to just use `python` and `pip`, create an alias using your preferred user shell startup file (`~/.bashrc` for [bash](https://www.gnu.org/software/bash/), `~/.zshrc` for [zsh](https://zsh.sourceforge.io/), etc.).
-
-###### Modify your preferred user startup file with nano (~/.zshrc in this example)
-
-> type your password at the prompt
+Install uv if you don't have it:
 
 ```shell
-$ sudo nano ~/.zshrc
-  UW PICO 5.09                                 File: /Users/dgillis/.zshrc
-
-export GOPATH=$HOME/go
-PATH="$GOPATH/bin:$PATH"                                                                       
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-###### Add alias to user shell startup file
-
-Add python and pip alias to the bottom of your shell startup file
+Create and activate the virtual environment:
 
 ```shell
-$ sudo nano ~/.zshrc
-  UW PICO 5.09                                 File: /Users/dgillis/.zshrc
-
-# alias python
-alias python=python3
-
-# alias pip
-alias pip=pip3
+uv venv
+source .venv/bin/activate
 ```
 
-`control o` to write to the file
-`control x` to save to the file
-
-###### Load the user startup file into current shell
+Install dbt:
 
 ```shell
-source ~/.zshrc
+uv pip install dbt-core dbt-snowflake
 ```
 
-> This only needs to be done in your current shell -- in subsequent shell initializations, the alias is set permanently.
+### Connection Profile Setup
 
-###### Validate the aliases
+dbt uses [connection profiles](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) stored in `~/.dbt/profiles.yml`.
+
+Create the directory and file:
 
 ```shell
-$ which python
-python: aliased to python3
-```
-
-```shell
-which pip
-pip: aliased to pip3
-```
-
-To see which Python installation these aliases are pointing to:
-
-```shell
-$ which python3
-/Library/Frameworks/Python.framework/Versions/3.13/bin/python3
-```
-
-```shell
-$ which pip3
-/Library/Frameworks/Python.framework/Versions/3.13/bin/pip3
-```
-
-##### Step 4 - pip configuration
-
-###### Ensure `pip`, `wheel` and `setuptools` are using the latest version
-
-```shell
-$ pip install --upgrade pip wheel setuptools
-Requirement already satisfied: pip in /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages (25.1.1)
-Collecting pip
-  Using cached pip-25.2-py3-none-any.whl.metadata (4.7 kB)
-Collecting wheel
-  Downloading wheel-0.45.1-py3-none-any.whl.metadata (2.3 kB)
-Collecting setuptools
-  Using cached setuptools-80.9.0-py3-none-any.whl.metadata (6.6 kB)
-Using cached pip-25.2-py3-none-any.whl (1.8 MB)
-Downloading wheel-0.45.1-py3-none-any.whl (72 kB)
-Using cached setuptools-80.9.0-py3-none-any.whl (1.2 MB)
-Installing collected packages: wheel, setuptools, pip
-  Attempting uninstall: pip
-    Found existing installation: pip 25.1.1
-    Uninstalling pip-25.1.1:
-      Successfully uninstalled pip-25.1.1
-Successfully installed pip-25.2 setuptools-80.9.0 wheel-0.45.1
-```
-
-If you receive an error like `pip install fails with "connection error: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:598)` re-run the command as such:
-
-```shell
-pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org pip wheel setuptools virtualenv
-```
-
-After completing these upgrades, your python system package list should look something like this (likely with newer versions):
-
-```shell
-$ pip list -v
-Package    Version Location                                                                        Installer
----------- ------- ------------------------------------------------------------------------------- ---------
-pip        25.2    /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages pip
-setuptools 80.9.0  /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages pip
-wheel      0.45.1  /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages pip
-```
-
-##### Step 5 - Require virtual environments
-
-Best practice dictates that when installing python packages through `pip`, use a virtual environment. Add the `require-virtualenv` to `pip` to ensure this is always the case.
-
-```shell
-$ pip config set global.require-virtualenv True
-Writing to /Users/dgillis/.config/pip/pip.conf
-```
-
-If you choose, validate the output to see how/where `pip` wrote the config (replace with your user/home directory name):
-
-```shell
-vi /Users/dgillis/.config/pip/pip.conf
-```
-
-You should see the following in the pip config file:
-
-```text
-[global]
-require-virtualenv = True
-```
-
-Enter `:q` to exit `vi`
-
-#### dbt Setup
-
-##### Virtual Environment dbt Installation
-
-As mentioned before, it's best practice to work in python using [virtual environments](https://docs.python.org/3/library/venv.html#how-venvs-work). Where to put the virtual environment is user choice really, but a common place is in your user home directory in a folder called `.virtualenvs`. This way, the virtual environment stays outside the project tree.
-
-If you prefer, you can also place the virtual environment under the project directory itself in a directory called `.venv/`, which is already in the `.gitignore` file. The instructions below assume you're using `.venv/` at the project root.
-
-###### Step 1 - Navigate to project root and create .venv directory
-
-Navigate to the project root of wherever you have cloned this repo and create the `.venv` directory (replace with your path):
-
-```shell
-cd ~/dev/github/dbt-demo
-python -m venv ./.venv
-```
-
-###### Step 2 - Activate virtual environment
-
-Activate the virtual environment in your current shell
-
-```shell
-$ source ./.venv/bin/activate
-(.venv) dgillis@mylaptop dbt-demo %
-```
-
-> Most IDEs will automatically activate the virtual environment for you when you open the project.
-
-###### Step 3 - Install dbt-snowflake and dbt-core
-
-Install dbt-snowflake and dbt-core with `pip`
-
-```shell
-(.venv) dgillis@mylaptop dbt-demo % python -m pip install dbt-core dbt-snowflake
-Requirement already satisfied: dbt-core in ./.venv/lib/python3.12/site-packages (1.9.4)
-Requirement already satisfied: dbt-snowflake in ./.venv/lib/python3.12/site-packages (1.9.4)
-Requirement already satisfied: agate<1.10,>=1.7.0 in ./.venv/lib/python3.12/site-packages (from dbt-core) (1.9.1)
-Requirement already satisfied: Jinja2<4,>=3.1.3 in ./.venv/lib/python3.12/site-packages (from dbt-core) (3.1.6)
-Requirement already satisfied: mashumaro<3.15,>=3.9 in ./.venv/lib/python3.12/site-packages (from mashumaro[msgpack]<3.15,>=3.9->dbt-core) (3.14)
-Requirement already satisfied: click<9.0,>=8.0.2 in ./.venv/lib/python3.12/site-packages (from dbt-core) (8.2.1)
-Requirement already satisfied: networkx<4.0,>=2.3 in ./.venv/lib/python3.12/site-packages (from dbt-core) (3.4.2)
-Requirement already satisfied: protobuf<6.0,>=5.0 in ./.venv/lib/python3.12/site-packages (from dbt-core) (5.29.4)
-Requirement already satisfied: requests<3.0.0 in ./.venv/lib/python3.12/site-packages (from dbt-core) (2.32.3)
-Requirement already satisfied: snowplow-tracker<2.0,>=1.0.2 in ./.venv/lib/python3.12/site-packages (from dbt-core) (1.1.0)
-Requirement already satisfied: pathspec<0.13,>=0.9 in ./.venv/lib/python3.12/site-packages (from dbt-core) (0.12.1)
-Requirement already satisfied: sqlparse<0.6.0,>=0.5.0 in ./.venv/lib/python3.12/site-packages (from dbt-core) (0.5.3)...
-```
-
-##### Connection Profile Setup
-
-dbt uses [connection profiles](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) to enable database connections. When developing dbt locally, in your user home directory (`/Users/yourusername` on a Mac or `C:\Users\yourusername\` on Windows), do the following:
-
-###### Create the .dbt directory
-
-```shell
-mkdir ~/.dbt
-```
-
-###### Create the profiles.yml file
-
-```shell
+mkdir -p ~/.dbt
 touch ~/.dbt/profiles.yml
 ```
 
-dbt supports multiple [targets](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles#understanding-targets-in-profiles) (prod, dev, qa, etc.). These targets are configured in the `profiles.yml` file.
-
-###### Add targets
-
-Below are two example targets that could be in your `profiles.yml` file. Configure appropriately for your environment (use your account, user, etc.). This gives examples of two different Snowflake authentication methods - key pair authentication and **P**rogrammatic **A**ccess **T**oken (PAT) authentication. You can use either or both methods. If using PAT authentication, ensure you have created a PAT in Snowflake and stored it in an environment variable called `DBT_ENV_SECRET_PAT`.
+Add your target configuration. Below are examples for key pair and PAT authentication:
 
 ```yaml
 default:
@@ -272,200 +323,32 @@ default:
   outputs:
     dev-keypair-auth:
       type: snowflake
-      # snowflake account identifier
-      account: sfsenorthamerica-dgillis_aws_useast1_v1
-      # snowflake username
-      user: bmeyer
-      #snowflake role
-      role: dbt_demo_data_engineer
-
-      # Keypair config
-      private_key_path: /Users/dgillis/.ssh/demo_dgillis_keypair_auth_rsa_key.p8
-      # private_key_passphrase: [passphrase for the private key, if key is encrypted]
-
-      database: dbt_demo
-      warehouse: dbt_demo_s_wh
+      account: <your_account_identifier>
+      user: <your_username>
+      role: <your_role>
+      private_key_path: <path_to_your_private_key.p8>
+      database: <your_database>
+      warehouse: <your_warehouse>
       schema: curated
       threads: 8
-      client_session_keep_alive: False
-      query_tag: test_query_tag # optional, used for query tagging in Snowflake
-
-      # optional
-      connect_retries: 0 # default 0
-      connect_timeout: 10 # default: 10
-      retry_on_database_errors: False # default: false
-      retry_all: False  # default: false
-      reuse_connections: True # default: True if client_session_keep_alive is False, otherwise None
 
     dev-pat-auth:
       type: snowflake
-      # snowflake account identifier
-      account: sfsenorthamerica-dgillis_aws_useast1_v1
-      #snowflake role
-      role: dbt_demo_data_engineer
-
-      # User/password auth
-      user: tastyb
+      account: <your_account_identifier>
+      user: <your_username>
+      role: <your_role>
       password: "{{ env_var('DBT_ENV_SECRET_PAT') }}"
-
-      database: dbt_demo
-      warehouse: dbt_demo_s_wh
+      database: <your_database>
+      warehouse: <your_warehouse>
       schema: curated
       threads: 8
-      client_session_keep_alive: False
-      query_tag: test_query_tag # optional, used for query tagging in Snowflake
-
-      # optional
-      connect_retries: 0 # default 0
-      connect_timeout: 10 # default: 10
-      retry_on_database_errors: False # default: false
-      retry_all: False  # default: false
-      reuse_connections: True # default: True if client_session_keep_alive is False, otherwise None
 ```
 
-###### Test your connection
-
-1. Ensure your python virtual environment is activated.
+### Verify Your Connection
 
 ```shell
-% source ./.venv/bin/activate
-(.venv) dgillis@mylaptop dbt-demo %
+source .venv/bin/activate
+dbt debug
 ```
 
-From your project root. Use the `dbt debug` command to validate your connection
-
-```shell
-(.venv) dgillis@mylaptop dbt-demo % ./cmd/build/dbt/local/debug.sh 
-03:31:02  Running with dbt=1.9.4
-03:31:02  dbt version: 1.9.4
-03:31:02  python version: 3.12.7
-03:31:02  python path: /Users/dgillis/Documents/dev/github/dbt-demo/.venv/bin/python
-03:31:02  os info: macOS-15.7-arm64-arm-64bit
-03:31:02  Using profiles dir at /Users/dgillis/.dbt
-03:31:02  Using profiles.yml file at /Users/dgillis/.dbt/profiles.yml
-03:31:02  Using dbt_project.yml file at ./dbt_project.yml
-03:31:02  adapter type: snowflake
-03:31:02  adapter version: 1.9.4
-03:31:02  Configuration:
-03:31:02    profiles.yml file [OK found and valid]
-03:31:02    dbt_project.yml file [OK found and valid]
-03:31:02  Required dependencies:
-03:31:02   - git [OK found]
-
-03:31:02  Connection:
-03:31:02    account: sfsenorthamerica-dgillis-aws-useast1-v1
-03:31:02    user: tastyb
-03:31:02    database: dev_dbt_demo
-03:31:02    warehouse: dbt_demo_s_wh
-03:31:02    role: dbt_demo_data_engineer
-03:31:02    schema: modeled
-03:31:02    authenticator: None
-03:31:02    oauth_client_id: None
-03:31:02    query_tag: test_query_tag
-03:31:02    client_session_keep_alive: False
-03:31:02    host: None
-03:31:02    port: None
-03:31:02    proxy_host: None
-03:31:02    proxy_port: None
-03:31:02    protocol: None
-03:31:02    connect_retries: 0
-03:31:02    connect_timeout: 10
-03:31:02    retry_on_database_errors: False
-03:31:02    retry_all: False
-03:31:02    insecure_mode: False
-03:31:02    reuse_connections: True
-03:31:02  Registered adapter: snowflake=1.9.4
-03:31:03    Connection test: [OK connection ok]
-
-03:31:03  All checks passed!
-```
-
-## Running dbt
-
-TODO - document running models, etc.
-
-## dbt Code Generation
-
-A key part of dbt development is creating models and their associated YAML files. This can be tedious and time-consuming. The [dbt-codegen package](https://github.com/dbt-labs/dbt-codegen) provides tools for generating model YAML and SQL.
-
-### Generating Source YAML from the command line
-
-The `generate_source` command can take a list of table names to include in the source definition. If no table names are provided, all tables in the specified schema will be included.
-
-This command will generate a [source YAML file](https://docs.getdbt.com/reference/source-configs#configuring-sources) for the specified schema and tables. The `generate_columns` argument, when set to true, will include column definitions in the generated YAML
-
-```shell
-dbt --quiet run-operation generate_source --target dev-tastyb --args '{"schema_name": "raw", "table_names":["country","franchise","location","menu","order_detail","order_header","truck"], "generate_columns": true}' > models/staging/pos/_source_pos.yml
-```
-
-> Note: The `--target` flag is optional. If not provided, the default target in your `profiles.yml` file will be used. The output is redirected to a file in this example, but you can also just run the command and copy/paste the output.
-
-This will generate a source YAML file like the following:
-
-```yaml
-version: 2
-
-sources:
-  - name: raw
-    tables:
-      - name: customer_loyalty
-        columns:
-          - name: customer_id
-            data_type: number
-          - name: first_name
-            data_type: varchar
-          - name: last_name
-            data_type: varchar
-...
-```
-
-### Generating Staging Model for a source from the command line
-
-The `generate_base_model` command can be used to generate a [basic staging model](https://docs.getdbt.com/best-practices/how-we-structure/2-staging) for a specified source table.
-
-```shell
-dbt --quiet run-operation generate_base_model --args '{"source_name": "raw", "table_name": "customer_loyalty"}' > models/staging/loyalty/stg_loyalty__customer_loyalty.sql
-```
-
-This will generate a basic staging model SQL file like the following:
-
-```sql
-with source as (
-
-    select * from {{ source('raw', 'customer_loyalty') }}
-
-),
-
-renamed as (
-
-    select
-        customer_id,
-        first_name,
-        last_name,
-        city,
-        country,
-        postal_code,
-        preferred_language,
-        gender,
-        favourite_brand,
-        marital_status,
-        children_count,
-        sign_up_date,
-        birthday_date,
-        e_mail,
-        phone_number
-
-    from source
-
-)
-
-select * from renamed
-```
-
-### Generating Model YAML from the command line
-
-The `generate_model_yaml` command can be used to generate a [model YAML file](https://docs.getdbt.com/docs/building-a-dbt-project/building-models/configuring-models) for one or more specified models. The `upstream_descriptions` argument, when set to true, will include descriptions for upstream models in the generated YAML. The `include_data_types` argument, when set to true, will include data types for columns in the generated YAML.
-
-```shell
-dbt run-operation generate_model_yaml --args '{"model_names": ["prep_f_cep_bdc_scheduler_extl_api_appointment"], "upstream_descriptions": True, "include_data_types": True}'
-```
+You should see `All checks passed!` at the end.
