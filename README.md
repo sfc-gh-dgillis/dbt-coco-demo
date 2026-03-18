@@ -45,8 +45,7 @@ dbt build
 ### Prompt 1: Explore the project
 
 ```
-What is this dbt project? Give me a summary of the data domain, the sources,
-the model layers, and any custom macros or UDFs.
+What is this dbt project? Give me a summary of the data domain, the sources, the model layers, and any custom macros or UDFs.
 ```
 
 **What the audience sees:** Cortex Code reads `dbt_project.yml`, the source YAMLs, the staging models, the mart models, and the macros. It synthesizes a clear summary:
@@ -56,6 +55,12 @@ the model layers, and any custom macros or UDFs.
 - 2-layer DAG: staging views -> mart tables (dimensional model)
 - Custom UDFs for surrogate key generation and VARIANT flattening
 - Uses `codegen` and `dbt_utils` packages
+
+### Prompt 2: Setup dbt
+
+```text
+This project does not have a virtual environment or dbt packages installed. Set those up now. Ensure the virtual environment is added to .gitignore so it doesn't get committed.
+```
 
 ### Prompt 2: Understand lineage
 
