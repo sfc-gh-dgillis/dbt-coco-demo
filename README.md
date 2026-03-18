@@ -124,10 +124,16 @@ Build the mart models with the --empty flag so the tables exist for schema valid
 
 **Key talking point:** "The --empty flag is a dbt trick for quickly validating schema and relationships without waiting for data to load."
 
+### Prompt 4: Add Enforced Contracts
+
+```text
+I want to use dbt contracts to define a set of upfront "guarantees" on model definitions. Add contracts to the mart models.
+```
+
 ### Prompt 6: Run the tests
 
 ```
-Run dbt test for the marts models
+Run dbt test for the dimension marts models
 ```
 
 **What the audience sees:** Cortex Code runs `dbt test --select marts` and shows pass/fail results. If any fail, it diagnoses and fixes them live (which is actually a *better* demo moment than all passing).
