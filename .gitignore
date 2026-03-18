@@ -29,13 +29,13 @@ tasks.json
 *.dylib
 
 # virtual environment
-.venv
+.venv/
 
 # dbt directories
 dbt_packages/
+dbt_internal_packages/
 target/
 logs/
 
 # .env files
 .env
-dbt_internal_packages/
