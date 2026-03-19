@@ -56,13 +56,75 @@ What is this dbt project? Give me a summary of the data domain, the sources, the
 - Custom UDFs for surrogate key generation and VARIANT flattening
 - Uses `codegen` and `dbt_utils` packages
 
-### Prompt 2: Setup dbt
+> **Aside: How did it know all that?** This is a good moment to explain **skills** to the audience.
+>
+> Cortex Code ships with **built-in skills** -- domain-specific instruction sets that give it deep knowledge of tools like dbt, Streamlit, Snowpark, and more. When you asked about the project, Cortex Code automatically activated the **dbt skill**, which knows how to read `dbt_project.yml`, parse source YAMLs, trace `ref()` and `source()` macros, and understand the staging-to-marts layer pattern. That's why the summary was so accurate -- it wasn't guessing, it was following a structured dbt-aware workflow.
+>
+> Skills are one of the key extensibility mechanisms in Cortex Code. There are three categories:
+>
+> - **Bundled skills** ship with the CLI (dbt, Streamlit, data governance, ML, cost intelligence, lineage, and more)
+> - **Custom skills** are Markdown files you create in `.cortex/skills/` (project-level) or `~/.snowflake/cortex/skills/` (global) to encode your team's conventions
+> - **Remote skills** can be pulled from Git repos and shared across your organization
+>
+> You can invoke a skill explicitly by prefixing it with `$` (e.g., `$data-quality`, `$lineage`), or Cortex Code activates the right skill automatically based on your prompt. Run `/skill list` to see all available skills.
+
+**Key talking point:** "Skills are what make Cortex Code more than a general-purpose AI. It has deep, built-in expertise for Snowflake workflows -- and you can extend it with your own."
+
+### Prompt 2: Check data quality on the source tables
+
+Now that we know what the project does, let's see if the source data is trustworthy before we start building. This uses the `$data-quality` skill to do a quick assessment.
+
+```
+$data-quality Run a quick quality scan on the raw source tables in this project. Check for nulls in key columns, row counts, and anything that looks off. Exclude analysis of the order_header and the order_detail tables since those are very large and we don't want to run expensive checks on them right now. Give me a plain-English summary of the results.
+```
+
+**What the audience sees:** Cortex Code activates the data-quality skill, identifies the source tables from the dbt project, and runs targeted SQL checks -- null rates on primary keys, row count validation, and anomaly detection. It returns a plain-English summary of data health.
+
+**Key talking point:** "I didn't write a single SQL query. I just told it to check data quality, and the skill knew exactly what to look for."
+
+### Prompt 3: Analyze security posture
+
+While we're assessing the project, let's check the account's security posture. The `$trust-center` skill connects to Snowflake's Trust Center -- a built-in security scanner that continuously monitors your account for vulnerabilities, misconfigurations, and threats.
+
+```
+$trust-center Analyze my security posture
+```
+
+**What the audience sees:** Cortex Code activates the trust-center skill, queries the `snowflake.trust_center.findings` view, and returns a structured security report: severity distribution, active findings by scanner, week-over-week trends, and specific remediation steps. In this account, all findings are MFA/authentication related -- it even generates the SQL to fix them.
+
+**Key talking point:** "This is the same Trust Center you see in Snowsight, but now I can query it conversationally and get actionable remediation steps -- right here in my terminal."
+
+### Prompt 4: Cut a dev branch
+
+Cortex Code works natively with Git -- it can create branches, stage files, commit changes, and more, all without leaving the CLI. It's good practice to work on a dev branch so we don't push untested changes directly to main.
+
+```text
+Create a new branch called dgillis-dev and switch to it
+```
+
+**What the audience sees:** Cortex Code runs `git checkout -b dgillis-dev` and confirms the switch. Simple, but it reinforces that Cortex Code is a full development environment -- not just a code generator.
+
+**Key talking point:** "Cortex Code understands Git natively. Branching, committing, diffing -- it's all built in. No context switching."
+
+### Prompt 5: Explore the raw data
+
+Cortex Code connects directly to Snowflake -- no extra configuration, no context switching to a SQL IDE. Let's use that to get a feel for the raw data before we start building.
+
+```
+Run row counts on all the raw source tables and give me a summary of what data we're working with. Describe the key tables.
+```
+
+**What the audience sees:** Cortex Code executes SQL directly against Snowflake, returning row counts for all source tables and a plain-English summary of the data -- table purposes, key columns, and approximate scale. No need to open Snowsight or a SQL IDE.
+
+**Key talking point:** "Cortex Code has a native Snowflake connection. You can query data, inspect tables, and answer questions -- all without leaving the CLI."
+
+### Prompt 6: Setup dbt
 
 ```text
 This project does not have a virtual environment or dbt packages installed. Set those up now. Ensure the virtual environment is added to .gitignore so it doesn't get committed.
 ```
 
-### Prompt 3: Understand lineage
+### Prompt 7: Understand lineage
 
 ```
 What does the f_order_line model depend on? Trace the full lineage back to raw sources.
@@ -83,7 +145,7 @@ raw.order_header -> stg_pos__order_header -> f_order (parent fact)
 
 > **Story:** "This project has no contracts, constraints and zero tests. That's a problem. Let's fix it."
 
-### Prompt 4: Add schema.yml
+### Prompt 8: Add schema.yml
 
 ```text
 This project has no model and column properties defined for the mart models. Add a schema.yml file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Again, do your best to write descriptions for each column.
@@ -97,7 +159,7 @@ This project has no model and column properties defined for the mart models. Add
 
 **Key talking point:** "It inferred descriptions and constraints from context -- column names, data types, and relationships to other models."
 
-### Prompt 5: Add Tests and Think Through Something
+### Prompt 9: Add Tests and Think Through Something
 
 Often times when building, I ask questions of the Cortex Code that I may be pretty sure of, but it can help validate my thinking.
 
@@ -114,7 +176,7 @@ It also provides a thoughtful response about not_null tests vs constraints -- ex
 
 **Key talking point:** "Cortex Code isn't just a code generator -- it can reason about tradeoffs and help you make informed decisions."
 
-### Prompt 6: Build empty models
+### Prompt 10: Build empty models
 
 ```
 Build the mart models with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
@@ -124,13 +186,13 @@ Build the mart models with the --empty flag so the tables exist for schema valid
 
 **Key talking point:** "The --empty flag is a dbt trick for quickly validating schema and relationships without waiting for data to load."
 
-### Prompt 7: Add Enforced Contracts
+### Prompt 11: Add Enforced Contracts
 
 ```text
 I want to use dbt contracts to define a set of upfront "guarantees" on model definitions. Add contracts to the mart models.
 ```
 
-### Prompt 8: Run the tests
+### Prompt 12: Run the tests
 
 ```
 Run dbt test for the dimension marts models
@@ -146,7 +208,7 @@ Run dbt test for the dimension marts models
 
 > **Story:** "The business team wants a daily sales summary. Let's build it."
 
-### Prompt 9: Build a new model
+### Prompt 13: Build a new model
 
 ```
 Build a new mart model called f_daily_sales_summary that aggregates daily revenue
@@ -162,7 +224,7 @@ by truck, location, and menu item. It should follow the existing conventions in 
 
 **Key talking point:** "It matched the existing surrogate key pattern, the naming conventions, even the SQL formatting -- because it read the other models first."
 
-### Prompt 10: Query the results
+### Prompt 14: Query the results
 
 ```
 Show me the top 10 days by total revenue from f_daily_sales_summary
@@ -176,7 +238,7 @@ Show me the top 10 days by total revenue from f_daily_sales_summary
 
 > **Story:** "While I'm here, let me answer a few quick business questions."
 
-### Prompt 11: Business question
+### Prompt 15: Business question
 
 ```
 What are the top 5 menu items by total revenue?
@@ -189,7 +251,7 @@ What are the top 5 menu items by total revenue?
 | Lobster Mac & Cheese | $X,XXX,XXX |
 | ... | ... |
 
-### Prompt 12: Another business question
+### Prompt 16: Another business question
 
 ```
 How many loyalty members signed up each year?
@@ -205,7 +267,7 @@ How many loyalty members signed up each year?
 
 > **Story:** "Let's also clean up the source definitions while we're at it."
 
-### Prompt 13: Add descriptions
+### Prompt 17: Add descriptions
 
 ```
 Add meaningful column descriptions to the POS source YAML in
@@ -223,7 +285,7 @@ and data types.
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 14: Commit
+### Prompt 18: Commit
 
 ```
 Commit all changes with an appropriate message
@@ -362,4 +424,4 @@ source .venv/bin/activate
 dbt debug
 ```
 
-You should see `All checks passed!` at the end.
+You should see `All checks passed!` at the end. 
