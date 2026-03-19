@@ -62,7 +62,7 @@ What is this dbt project? Give me a summary of the data domain, the sources, the
 This project does not have a virtual environment or dbt packages installed. Set those up now. Ensure the virtual environment is added to .gitignore so it doesn't get committed.
 ```
 
-### Prompt 2: Understand lineage
+### Prompt 3: Understand lineage
 
 ```
 What does the f_order_line model depend on? Trace the full lineage back to raw sources.
@@ -83,7 +83,7 @@ raw.order_header -> stg_pos__order_header -> f_order (parent fact)
 
 > **Story:** "This project has no contracts, constraints and zero tests. That's a problem. Let's fix it."
 
-### Prompt 3: Add schema.yml
+### Prompt 4: Add schema.yml
 
 ```text
 This project has no model and column properties defined for the mart models. Add a schema.yml file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Again, do your best to write descriptions for each column.
@@ -97,7 +97,7 @@ This project has no model and column properties defined for the mart models. Add
 
 **Key talking point:** "It inferred descriptions and constraints from context -- column names, data types, and relationships to other models."
 
-### Prompt 4: Add Tests and Think Through Something
+### Prompt 5: Add Tests and Think Through Something
 
 Often times when building, I ask questions of the Cortex Code that I may be pretty sure of, but it can help validate my thinking.
 
@@ -114,7 +114,7 @@ It also provides a thoughtful response about not_null tests vs constraints -- ex
 
 **Key talking point:** "Cortex Code isn't just a code generator -- it can reason about tradeoffs and help you make informed decisions."
 
-### Prompt 5: Build empty models
+### Prompt 6: Build empty models
 
 ```
 Build the mart models with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
@@ -124,13 +124,13 @@ Build the mart models with the --empty flag so the tables exist for schema valid
 
 **Key talking point:** "The --empty flag is a dbt trick for quickly validating schema and relationships without waiting for data to load."
 
-### Prompt 4: Add Enforced Contracts
+### Prompt 7: Add Enforced Contracts
 
 ```text
 I want to use dbt contracts to define a set of upfront "guarantees" on model definitions. Add contracts to the mart models.
 ```
 
-### Prompt 6: Run the tests
+### Prompt 8: Run the tests
 
 ```
 Run dbt test for the dimension marts models
@@ -146,7 +146,7 @@ Run dbt test for the dimension marts models
 
 > **Story:** "The business team wants a daily sales summary. Let's build it."
 
-### Prompt 6: Build a new model
+### Prompt 9: Build a new model
 
 ```
 Build a new mart model called f_daily_sales_summary that aggregates daily revenue
@@ -162,7 +162,7 @@ by truck, location, and menu item. It should follow the existing conventions in 
 
 **Key talking point:** "It matched the existing surrogate key pattern, the naming conventions, even the SQL formatting -- because it read the other models first."
 
-### Prompt 7: Query the results
+### Prompt 10: Query the results
 
 ```
 Show me the top 10 days by total revenue from f_daily_sales_summary
@@ -176,7 +176,7 @@ Show me the top 10 days by total revenue from f_daily_sales_summary
 
 > **Story:** "While I'm here, let me answer a few quick business questions."
 
-### Prompt 8: Business question
+### Prompt 11: Business question
 
 ```
 What are the top 5 menu items by total revenue?
@@ -189,7 +189,7 @@ What are the top 5 menu items by total revenue?
 | Lobster Mac & Cheese | $X,XXX,XXX |
 | ... | ... |
 
-### Prompt 9: Another business question
+### Prompt 12: Another business question
 
 ```
 How many loyalty members signed up each year?
@@ -205,7 +205,7 @@ How many loyalty members signed up each year?
 
 > **Story:** "Let's also clean up the source definitions while we're at it."
 
-### Prompt 11: Add descriptions
+### Prompt 13: Add descriptions
 
 ```
 Add meaningful column descriptions to the POS source YAML in
@@ -223,7 +223,7 @@ and data types.
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 11: Commit
+### Prompt 14: Commit
 
 ```
 Commit all changes with an appropriate message
