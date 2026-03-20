@@ -134,7 +134,6 @@ What does the f_order_line model depend on? Trace the full lineage back to raw s
 
 ```
 raw.order_detail -> stg_pos__order_detail -> f_order_line
-raw.order_header -> stg_pos__order_header -> f_order (parent fact)
 ```
 
 **Key talking point:** "I didn't have to read a single file. Cortex Code understands dbt project structure natively."
@@ -148,7 +147,7 @@ raw.order_header -> stg_pos__order_header -> f_order (parent fact)
 ### Prompt 8: Add schema.yml
 
 ```text
-This project has no model and column properties defined for the mart models. Add a schema.yml file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Again, do your best to write descriptions for each column.
+This project has no model and column properties defined for the mart models. Make a plan to add a `_schema.yml` file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Exclude fact tables at this time as I want to focus on the dimensions first.
 ```
 
 **What the audience sees:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/schema.yml` with:
@@ -164,7 +163,7 @@ This project has no model and column properties defined for the mart models. Add
 Often times when building, I ask questions of the Cortex Code that I may be pretty sure of, but it can help validate my thinking.
 
 ```text
-This project has no tests for the mart models. Add tests for all mart models. Include unique tests on all primary keys, and relationship tests where foreign keys reference other mart dimensions. Also, I am considering adding not_null tests, but that seems redundant considering added not_null constraints and in Snowflake these are actually enforced. What do you think?
+This project has no tests for the mart models. Add tests for all mart models but do not build yet. Include unique tests on all primary keys, and relationship tests where foreign keys reference other mart dimensions. Also, I am considering adding not_null tests, but that seems redundant considering added not_null constraints and in Snowflake these are actually enforced. What do you think?
 ```
 
 **What the audience sees:** Cortex Code adds dbt tests to the schema.yml:
@@ -179,7 +178,7 @@ It also provides a thoughtful response about not_null tests vs constraints -- ex
 ### Prompt 10: Build empty models
 
 ```
-Build the mart models with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
+Build the mart dimension models only with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
 ```
 
 **What the audience sees:** Cortex Code runs `dbt build --select marts --empty` which creates the table structures without loading data. This is fast and ensures the schema exists for relationship tests to validate against.
@@ -195,7 +194,7 @@ I want to use dbt contracts to define a set of upfront "guarantees" on model def
 ### Prompt 12: Run the tests
 
 ```
-Run dbt test for the dimension marts models
+Run dbt test for the dimension marts models only and show me the results. If any tests fail, diagnose and fix them.
 ```
 
 **What the audience sees:** Cortex Code runs `dbt test --select marts` and shows pass/fail results. If any fail, it diagnoses and fixes them live (which is actually a *better* demo moment than all passing).
@@ -211,8 +210,7 @@ Run dbt test for the dimension marts models
 ### Prompt 13: Build a new model
 
 ```
-Build a new mart model called f_daily_sales_summary that aggregates daily revenue
-by truck, location, and menu item. It should follow the existing conventions in this project -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
+Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the existing conventions in this project -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
 ```
 
 **What the audience sees:** Cortex Code:
