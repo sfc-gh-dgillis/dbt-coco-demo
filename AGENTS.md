@@ -102,3 +102,7 @@ Do NOT read or modify `~/.dbt/profiles.yml` directly as it contains credentials.
 - Staging models materialize as views
 - Mart models materialize as tables
 - Always use the full object name (database.schema.table) in output and SQL for clarity and to avoid ambiguity
+- Always ensure you're working in the correct virtual environment and using the appropriate dbt target for your authentication method when running commands. Never run from a global Python environment to avoid conflicts with other projects or system packages.
+- Always use uv to manage your virtual environment and dependencies. Do not use pip or other package managers outside of the uv environment to avoid conflicts and ensure reproducibility.
+- Always use uv pip to install specific versions of dbt-core and dbt-snowflake as specified in the setup commands to ensure compatibility and avoid issues with newer or older versions.
+- Activate the environment with source .venv/bin/activate before running any dbt commands to ensure you're using the correct Python environment and dependencies for this project.
