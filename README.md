@@ -271,29 +271,11 @@ How many loyalty members signed up each year?
 
 ---
 
-## Act 5 (Bonus): Documentation (~1-2 min)
-
-> **Story:** "Let's also clean up the source definitions while we're at it."
-
-### Prompt 18: Add descriptions
-
-```
-Add meaningful column descriptions to the POS source YAML in
-models/staging/pos/_source_pos.yml. Infer descriptions from the column names
-and data types.
-```
-
-**What the audience sees:** Cortex Code updates the source YAML with human-readable descriptions for every column across all 7 POS tables.
-
-**Key talking point:** "Documentation is the thing nobody wants to do. Now there's no excuse."
-
----
-
-## Act 6 (Bonus): Git Workflow (~30 sec)
+## Act 5 (Bonus): Git Workflow (~30 sec)
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 19: Commit
+### Prompt 18: Commit
 
 ```
 Commit all changes with an appropriate message
