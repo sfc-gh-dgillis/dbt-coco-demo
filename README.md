@@ -147,7 +147,7 @@ raw.order_detail -> stg_pos__order_detail -> f_order_line
 ### Prompt 8: Add schema.yml
 
 ```text
-This project has no model and column properties defined for the mart models. Make a plan to add a `_schema.yml` file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Exclude fact tables at this time as I want to focus on the dimensions first.
+This project has no model and column properties defined for the mart models. Make a plan to add a `_schema.yml` file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Exclude fact tables at this time as I want to focus on the dimensions first. Do not build yet, just create the YAML file.
 ```
 
 **What the audience sees:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/schema.yml` with:
@@ -158,7 +158,17 @@ This project has no model and column properties defined for the mart models. Mak
 
 **Key talking point:** "It inferred descriptions and constraints from context -- column names, data types, and relationships to other models."
 
-### Prompt 9: Add Tests and Think Through Something
+### Prompt 9: Commit the changes
+
+```text
+Commit the changes
+```
+
+**What the audience sees:** Cortex Code stages the new and modified files, generates a meaningful commit message summarizing the schema additions, and commits.
+
+**Key talking point:** "It understands the context of what changed and writes a descriptive commit message -- no copy-pasting or context switching."
+
+### Prompt 10: Add Tests and Think Through Something
 
 Often times when building, I ask questions of the Cortex Code that I may be pretty sure of, but it can help validate my thinking.
 
@@ -175,7 +185,7 @@ It also provides a thoughtful response about not_null tests vs constraints -- ex
 
 **Key talking point:** "Cortex Code isn't just a code generator -- it can reason about tradeoffs and help you make informed decisions."
 
-### Prompt 10: Build empty models
+### Prompt 11: Build empty models
 
 ```
 Build the mart dimension models only with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
@@ -185,13 +195,13 @@ Build the mart dimension models only with the --empty flag so the tables exist f
 
 **Key talking point:** "The --empty flag is a dbt trick for quickly validating schema and relationships without waiting for data to load."
 
-### Prompt 11: Add Enforced Contracts
+### Prompt 12: Add Enforced Contracts
 
 ```text
 I want to use dbt contracts to define a set of upfront "guarantees" on model definitions. Add contracts to the mart models.
 ```
 
-### Prompt 12: Run the tests
+### Prompt 13: Run the tests
 
 ```
 Run dbt test for the dimension marts models only and show me the results. If any tests fail, diagnose and fix them.
@@ -207,7 +217,7 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 > **Story:** "The business team wants a daily sales summary. Let's build it."
 
-### Prompt 13: Build a new model
+### Prompt 14: Build a new model
 
 ```
 Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the existing conventions in this project -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
@@ -222,7 +232,7 @@ Build a new mart model called f_daily_sales_summary that aggregates daily revenu
 
 **Key talking point:** "It matched the existing surrogate key pattern, the naming conventions, even the SQL formatting -- because it read the other models first."
 
-### Prompt 14: Query the results
+### Prompt 15: Query the results
 
 ```
 Show me the top 10 days by total revenue from f_daily_sales_summary
@@ -236,7 +246,7 @@ Show me the top 10 days by total revenue from f_daily_sales_summary
 
 > **Story:** "While I'm here, let me answer a few quick business questions."
 
-### Prompt 15: Business question
+### Prompt 16: Business question
 
 ```
 What are the top 5 menu items by total revenue?
@@ -249,7 +259,7 @@ What are the top 5 menu items by total revenue?
 | Lobster Mac & Cheese | $X,XXX,XXX |
 | ... | ... |
 
-### Prompt 16: Another business question
+### Prompt 17: Another business question
 
 ```
 How many loyalty members signed up each year?
@@ -265,7 +275,7 @@ How many loyalty members signed up each year?
 
 > **Story:** "Let's also clean up the source definitions while we're at it."
 
-### Prompt 17: Add descriptions
+### Prompt 18: Add descriptions
 
 ```
 Add meaningful column descriptions to the POS source YAML in
@@ -283,7 +293,7 @@ and data types.
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 18: Commit
+### Prompt 19: Commit
 
 ```
 Commit all changes with an appropriate message
