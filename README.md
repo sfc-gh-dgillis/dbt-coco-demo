@@ -38,6 +38,33 @@ dbt build
 
 ---
 
+## Choosing a Model
+
+Cortex Code supports multiple LLM models. You can switch models at any time during a session with the `/model` command, or set one at launch with `cortex --model <identifier>`.
+
+| Model | Identifier | Best For |
+|-------|-----------|----------|
+| **Auto (recommended)** | `auto` | Automatically selects the best available model for your account; upgrades as new models ship |
+| **Claude Opus 4.6** | `claude-opus-4-6` | Most capable -- complex reasoning, multi-step tasks, architectural planning |
+| **Claude Sonnet 4.6** | `claude-sonnet-4-6` | Strong balance of speed and quality for everyday development |
+| **Claude Opus 4.5** | `claude-opus-4-5` | Previous-gen flagship -- still excellent for complex work |
+| **Claude Sonnet 4.5** | `claude-sonnet-4-5` | Previous-gen default -- fast and reliable |
+| **Claude Sonnet 4.0** | `claude-4-sonnet` | Lightweight option with broad regional availability |
+| **OpenAI GPT 5.2** | `openai-gpt-5.2` | OpenAI's latest (preview) -- requires `AZURE_US` cross-region inference |
+
+**How to choose:**
+- Start with **`auto`** -- Cortex picks the best model available to your account and you automatically benefit when better models are released.
+- Use **Opus** when you need the highest quality: complex multi-file refactors, debugging tricky issues, or architectural decisions.
+- Use **Sonnet** for day-to-day work: building models, writing tests, exploring data, running queries.
+- **OpenAI GPT 5.2** is available in preview. It requires an ACCOUNTADMIN to enable cross-region inference to Azure US:
+  ```sql
+  ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AZURE_US';
+  ```
+
+**Regional availability:** Not all models are available in every region. If a model isn't available in yours, enable [cross-region inference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions#cross-region-inference) by setting `CORTEX_ENABLED_CROSS_REGION` (requires ACCOUNTADMIN). Use `AWS_US` for best Claude Opus coverage, or `ANY_REGION` for broadest access.
+
+---
+
 ## Act 1: Orientation (~2 min)
 
 > **Story:** "I just cloned this repo from a teammate who left the company. I have no idea what it does."

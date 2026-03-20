@@ -1,4 +1,4 @@
-comm# AGENTS.md
+# AGENTS.md
 
 ## Project Overview
 
