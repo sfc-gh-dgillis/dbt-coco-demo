@@ -68,10 +68,10 @@ Commit the changes
 This project has no tests for the mart models. Add tests for all mart models but do not build yet. Include unique tests on all primary keys, and relationship tests where foreign keys reference other mart dimensions. Also, I am considering adding not_null tests, but that seems redundant considering added not_null constraints and in Snowflake these are actually enforced. What do you think?
 ```
 
-### Prompt 11: Build empty models
+### Prompt 11: Build the dimension models
 
 ```
-Build the mart dimension models only with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
+Build the mart dimension models only.
 ```
 
 ### Prompt 12: Add Enforced Contracts

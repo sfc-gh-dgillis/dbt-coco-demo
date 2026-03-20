@@ -185,15 +185,15 @@ It also provides a thoughtful response about not_null tests vs constraints -- ex
 
 **Key talking point:** "Cortex Code isn't just a code generator -- it can reason about tradeoffs and help you make informed decisions."
 
-### Prompt 11: Build empty models
+### Prompt 11: Build the dimension models
 
 ```
-Build the mart dimension models only with the --empty flag so the tables exist for schema validation, but data doesn't have to load yet. This will allow us to run tests faster and iterate on the schema if needed.
+Build the mart dimension models only.
 ```
 
-**What the audience sees:** Cortex Code runs `dbt build --select marts --empty` which creates the table structures without loading data. This is fast and ensures the schema exists for relationship tests to validate against.
+**What the audience sees:** Cortex Code runs `dbt build` selecting only the dimension models, materializing them as tables in Snowflake. This ensures the schema and data exist for relationship tests to validate against.
 
-**Key talking point:** "The --empty flag is a dbt trick for quickly validating schema and relationships without waiting for data to load."
+**Key talking point:** "One prompt and the models are built. No need to remember dbt selector syntax."
 
 ### Prompt 12: Add Enforced Contracts
 
