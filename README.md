@@ -214,10 +214,10 @@ Run dbt test for the dimension marts models only and show me the results. If any
 ### Prompt 15: Query the results
 
 ```
-Show me the top 10 days by total revenue from f_daily_sales_summary
+#DEV_DBT_DEMO.CURATED.F_DAILY_SALES_SUMMARY Show me the top 10 days by total revenue
 ```
 
-**Expected result:** Cortex Code runs a SQL query directly against Snowflake and returns a formatted result table -- no context switching to another tool.
+**Expected result:** The `#` prefix auto-injects the table's column schema and sample rows into the prompt, so Cortex Code knows exactly what columns are available without guessing. It runs a SQL query directly against Snowflake and returns a formatted result table -- no context switching to another tool.
 
 ---
 
@@ -228,18 +228,18 @@ Show me the top 10 days by total revenue from f_daily_sales_summary
 ### Prompt 16: Business question
 
 ```
-What are the top 5 menu items by total revenue?
+#DEV_DBT_DEMO.CURATED.F_ORDER_LINE #DEV_DBT_DEMO.CURATED.D_MENU_ITEM What are the top 5 menu items by total revenue?
 ```
 
-**Expected result:** Cortex Code writes and executes a query joining `f_order_line` with `d_menu_item`, returning a formatted results table.
+**Expected result:** Both `#` mentions inject their schemas into context, so Cortex Code sees the join key and revenue columns before writing a single line of SQL. It writes and executes a query joining the two tables, returning a formatted results table.
 
 ### Prompt 17: Another business question
 
 ```
-How many loyalty members signed up each year?
+#DEV_DBT_DEMO.CURATED.D_LOYALTY_MEMBER How many loyalty members signed up each year?
 ```
 
-**Expected result:** A quick query against `d_loyalty_member` grouped by year. No SQL IDE needed -- explore data, build models, and run tests all in one place.
+**Expected result:** A quick query against the table, grouped by year. The `#` mention ensures Cortex Code knows the exact column name for the sign-up date without having to look it up. No SQL IDE needed -- explore data, build models, and run tests all in one place.
 
 ---
 
