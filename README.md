@@ -72,10 +72,10 @@ Cortex Code supports multiple LLM models. You can switch models at any time duri
 ### Prompt 1: Explore the project
 
 ```
-What is this dbt project? Give me a summary of the data domain, the sources, the model layers, and any custom macros or UDFs.
+@dbt_project.yml What is this dbt project? Give me a summary of the data domain, the sources, the model layers, and any custom macros or UDFs.
 ```
 
-**Expected result:** Cortex Code reads `dbt_project.yml`, the source YAMLs, the staging models, the mart models, and the macros. It synthesizes a clear summary: Tasty Bytes food truck company, 3 source systems (POS, Customer Loyalty, SafeGraph), 2-layer DAG (staging views → mart tables), custom UDFs, and `codegen`/`dbt_utils` packages. Skills are what make this possible -- domain-specific instruction sets that give it deep knowledge of dbt, Streamlit, Snowpark, and more.
+**Expected result:** The `@` prefix injects the file's contents directly into the prompt as context -- no copy-pasting needed. Cortex Code reads `dbt_project.yml` (provided via the `@` mention), then follows references to the source YAMLs, staging models, mart models, and macros. It synthesizes a clear summary: Tasty Bytes food truck company, 3 source systems (POS, Customer Loyalty, SafeGraph), 2-layer DAG (staging views → mart tables), custom UDFs, and `codegen`/`dbt_utils` packages. Skills are what make this possible -- domain-specific instruction sets that give it deep knowledge of dbt, Streamlit, Snowpark, and more.
 
 > **Aside: How did it know all that?** → **skills**
 >
@@ -138,10 +138,10 @@ This project does not have a virtual environment or dbt packages installed. Set 
 ### Prompt 7: Understand lineage
 
 ```
-What does the f_order_line model depend on? Trace the full lineage back to raw sources.
+@models/marts/f_order_line.sql What does this model depend on? Trace the full lineage back to raw sources.
 ```
 
-**Expected result:** Cortex Code traces the full lineage: `raw.order_detail -> stg_pos__order_detail -> f_order_line`. No files read manually -- it understands dbt project structure natively.
+**Expected result:** The `@` mention feeds the model's SQL directly into the prompt so Cortex Code can see the `ref()` calls immediately. It traces the full lineage: `raw.order_detail -> stg_pos__order_detail -> f_order_line`. No manual file hunting -- `@` gives it the starting point, and the dbt skill traces the rest.
 
 ---
 
@@ -206,10 +206,10 @@ Run dbt test for the dimension marts models only and show me the results. If any
 ### Prompt 14: Build a new model
 
 ```
-Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the existing conventions in this project -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
+@models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
 ```
 
-**Expected result:** Cortex Code writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/schema.yml` with tests, compiles, and materializes it. It matches the existing surrogate key pattern, naming conventions, and SQL formatting -- because it read the other models first.
+**Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
 
 ### Prompt 15: Query the results
 
@@ -386,4 +386,4 @@ source .venv/bin/activate
 dbt debug
 ```
 
-You should see `All checks passed!` at the end.                                                                                      
+You should see `All checks passed!` at the end.
