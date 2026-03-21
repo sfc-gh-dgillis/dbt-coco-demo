@@ -203,7 +203,43 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 > **Story:** "The business team wants a daily sales summary. Let's build it."
 
-### Prompt 14: Build a new model
+### Prompt 14: Fork before building
+
+```
+/fork before-new-model
+```
+
+**Expected result:** Cortex Code creates a new session branched from this point -- a checkpoint before we start building. This is like `git branch` for your conversation. If the next few prompts go sideways, we can come back to this exact state. The original session is preserved untouched.
+
+> **Aside:** `/fork` and `/rewind` are session management commands. `/fork` creates a non-destructive branch (keeps the original). `/rewind` rolls back destructively (discards messages). We'll see both in action.
+
+### Prompt 15: Build the wrong thing (intentional)
+
+```
+Build a new mart model called daily_sales that has columns for date, total_revenue, and total_orders. Materialize it as a view.
+```
+
+**Expected result:** Cortex Code builds the model -- but it's wrong. The name doesn't follow the `f_` prefix convention, it's missing the truck/location/menu item grain we actually want, and it's materialized as a view instead of a table. This is intentional -- we're about to undo it.
+
+### Prompt 16: Rewind the mistake
+
+```
+/rewind 1
+```
+
+**Expected result:** Cortex Code rolls back one user message, discarding the bad model build from the conversation. However, `/rewind` only rolls back the *conversation state* -- any files written to disk or tables materialized in Snowflake are still there. We need to clean those up.
+
+### Prompt 17: Clean up the mess
+
+```
+Delete the daily_sales model file and drop the table in Snowflake if it was created.
+```
+
+**Expected result:** Cortex Code removes the file from disk and drops the table from Snowflake. This is the full undo -- conversation rewound, file deleted, table dropped. Now we can re-prompt with the correct requirements.
+
+> **Aside:** `/rewind` is destructive -- it throws away everything after the rewind point. Use `/fork` when you might want to come back, and `/rewind` when you know the recent work was wrong. Remember that `/rewind` only affects the conversation -- any side effects (files, tables, git commits) need to be cleaned up separately.
+
+### Prompt 18: Build the model correctly
 
 ```
 @models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
@@ -211,7 +247,7 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 **Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
 
-### Prompt 15: Query the results
+### Prompt 19: Query the results
 
 ```
 #DEV_DBT_DEMO.CURATED.F_DAILY_SALES_SUMMARY Show me the top 10 days by total revenue
@@ -225,7 +261,7 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 > **Story:** "While I'm here, let me answer a few quick business questions."
 
-### Prompt 16: Business question
+### Prompt 20: Business question
 
 ```
 #DEV_DBT_DEMO.CURATED.F_ORDER_LINE #DEV_DBT_DEMO.CURATED.D_MENU_ITEM What are the top 5 menu items by total revenue?
@@ -233,7 +269,7 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 **Expected result:** Both `#` mentions inject their schemas into context, so Cortex Code sees the join key and revenue columns before writing a single line of SQL. It writes and executes a query joining the two tables, returning a formatted results table.
 
-### Prompt 17: Another business question
+### Prompt 21: Another business question
 
 ```
 #DEV_DBT_DEMO.CURATED.D_LOYALTY_MEMBER How many loyalty members signed up each year?
@@ -247,7 +283,7 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 18: Commit
+### Prompt 22: Commit
 
 ```
 Commit all changes with an appropriate message
