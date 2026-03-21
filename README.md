@@ -2,20 +2,9 @@
 
 A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstrate Cortex Code CLI and dbt capabilities.
 
-> **First time setup?** See [Environment Setup](#environment-setup) at the end of this document.
-
-## Quick Start
-
-```bash
-# Activate virtual environment
-source .venv/bin/activate
-
-# Verify connection
-dbt debug
-
-# Build all models
-dbt build
-```
+> **First time setup?** See [Demo Environment Setup](#demo-environment-setup) at the end of this document.
+>
+> **Returning for another demo?** See the [Pre-Demo Checklist](#pre-demo-checklist) to reset your environment.
 
 ---
 
@@ -29,12 +18,25 @@ dbt build
 
 ---
 
-## Pre-Demo Setup
+## Pre-Demo Checklist
 
-1. Open a terminal in your IDE of choice in the `dbt-coco-demo` project directory
-2. Ensure `cortex` CLI is installed and authenticated
-3. Verify the dbt virtual environment works: `source .venv/bin/activate && dbt debug`
-4. Have Snowflake open in a browser tab (optional, for showing results in Snowsight)
+Run through this before each demo to ensure a clean starting state.
+
+1. **Terminal:** Open a terminal in the `dbt-coco-demo` project directory
+2. **Branch:** Ensure you're on `main` -- `git checkout main && git pull`
+3. **Clean state:** Delete leftover artifacts from any prior demo run:
+   ```bash
+   rm -rf .venv dbt_packages target
+   rm -f models/marts/schema.yml models/marts/f_daily_sales_summary.sql
+   ```
+4. **Cortex Code:** Verify the CLI is authenticated -- `cortex connections list` should show your connection
+5. **Snowflake:** Verify raw data exists (quick sanity check):
+   ```sql
+   SELECT COUNT(*) FROM dev_dbt_demo.raw.country;  -- should return 30
+   ```
+6. **Browser tab:** Open Snowsight in a browser (optional, for showing query results visually)
+
+> **Important:** Do NOT create a virtual environment or install dbt deps before the demo. Prompt 6 does this live as a demo moment.
 
 ---
 
@@ -339,54 +341,109 @@ dbt run-operation generate_model_yaml --args '{"model_names": ["model_name"], "u
 
 ---
 
-## Environment Setup
+## Demo Environment Setup
 
-### Minimum Requirements
+One-time setup for SEs running this demo from scratch.
 
-- [git](https://git-scm.com/)
-- [Python 3.9+](https://www.python.org/downloads/)
-- [uv](https://docs.astral.sh/uv/) - Python package and project manager
+### 1. Local Prerequisites
 
-### Get the Code
+Install these tools on your machine:
 
-```shell
+| Tool | Install |
+|------|---------|
+| **git** | [git-scm.com](https://git-scm.com/) |
+| **Python 3.10+** | [python.org](https://www.python.org/downloads/) |
+| **uv** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| **Cortex Code CLI** | `snow cortex code install` (requires [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)) |
+
+### 2. Clone the Repo
+
+```bash
 git clone https://github.com/sfc-gh-dgillis/dbt-coco-demo.git
 cd dbt-coco-demo
 ```
 
-### Virtual Environment Setup
+### 3. Cortex Code CLI Authentication
 
-Install uv if you don't have it:
+Cortex Code authenticates via a Snowflake connection defined in `~/.snowflake/connections.toml`. If you already have a connection configured (e.g., from Snowflake CLI), verify it works:
 
-```shell
-curl -LsSf https://astral.sh/uv/install.sh | sh
+```bash
+cortex connections list
 ```
 
-Create and activate the virtual environment:
+If you need to create a connection, add an entry to `~/.snowflake/connections.toml`:
 
-```shell
-uv venv
-source .venv/bin/activate
+```toml
+[my_demo_connection]
+account = "<your_account_identifier>"
+user = "<your_username>"
+authenticator = "SNOWFLAKE_JWT"
+private_key_file = "<path_to_your_private_key.p8>"
+role = "dbt_demo_data_engineer"
+warehouse = "dbt_demo_xs_wh"
+database = "dev_dbt_demo"
+schema = "curated"
 ```
 
-Install dbt:
+Then set it as the active connection:
 
-```shell
-uv pip install dbt-core dbt-snowflake
+```bash
+cortex connections set my_demo_connection
 ```
 
-### Connection Profile Setup
+### 4. Snowflake Account Setup
 
-dbt uses [connection profiles](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) stored in `~/.dbt/profiles.yml`.
+Run the batch-1 SQL scripts **in order** in a Snowflake worksheet (or via SnowSQL). These require SYSADMIN/SECURITYADMIN/ACCOUNTADMIN roles.
 
-Create the directory and file:
+| Script | What It Creates | Role Required |
+|--------|----------------|---------------|
+| `tasks/snow-cli/sql/batch-1/1_create_warehouses.sql` | 6 warehouses (xs through xxl) | SYSADMIN |
+| `tasks/snow-cli/sql/batch-1/2_init_roles.sql` | 4 roles (rw, ro, data_engineer, analyst) | SECURITYADMIN |
+| `tasks/snow-cli/sql/batch-1/3_create_db_schema.sql` | `dev_dbt_demo` database + 4 schemas (raw, curated, modeled, utilities) | SYSADMIN |
+| `tasks/snow-cli/sql/batch-1/4_grants.sql` | Comprehensive grants for all roles/schemas/warehouses | ACCOUNTADMIN + SECURITYADMIN |
 
-```shell
+> **Important:** The grants script (`4_grants.sql`) contains a `GRANT ROLE ... TO USER tastyb` statement on the last line. **Edit this to your own Snowflake username** before running.
+
+### 5. Load Raw Data
+
+Run the batch-2 data load script in a Snowflake worksheet:
+
+```
+tasks/snow-cli/sql/batch-2/5_load_raw_data.sql
+```
+
+This script:
+- Creates an external stage pointing to the public Tasty Bytes S3 bucket (`s3://sfquickstarts/frostbyte_tastybytes/`)
+- Creates all 9 raw source tables in `dev_dbt_demo.raw`
+- Loads data via `COPY INTO` from the stage
+- Uses `dbt_demo_l_wh` (Large warehouse) for bulk loading
+
+**Estimated time:** ~5-10 minutes (the order_header and order_detail tables are 248M and 674M rows respectively).
+
+**Verify** the load succeeded with the row count query at the end of the script:
+
+| Table | Expected Rows |
+|-------|--------------|
+| country | 30 |
+| franchise | 325 |
+| location | 13,093 |
+| menu | 100 |
+| truck | 450 |
+| order_header | ~248M |
+| order_detail | ~674M |
+| customer_loyalty | 222,541 |
+| core_poi_geometry | 15,000 |
+
+### 6. dbt Connection Profile
+
+dbt uses [connection profiles](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) stored in `~/.dbt/profiles.yml`. Create the file if it doesn't exist:
+
+```bash
 mkdir -p ~/.dbt
 touch ~/.dbt/profiles.yml
 ```
 
-Add your target configuration. Below are examples for key pair and PAT authentication:
+Add a profile matching this project's `dbt_project.yml` (profile name: `default`):
 
 ```yaml
 default:
@@ -396,10 +453,10 @@ default:
       type: snowflake
       account: <your_account_identifier>
       user: <your_username>
-      role: <your_role>
+      role: dbt_demo_data_engineer
       private_key_path: <path_to_your_private_key.p8>
-      database: <your_database>
-      warehouse: <your_warehouse>
+      database: dev_dbt_demo
+      warehouse: dbt_demo_xs_wh
       schema: curated
       threads: 8
 
@@ -407,19 +464,23 @@ default:
       type: snowflake
       account: <your_account_identifier>
       user: <your_username>
-      role: <your_role>
-      password: "{{ env_var('DBT_ENV_SECRET_PAT') }}"
-      database: <your_database>
-      warehouse: <your_warehouse>
+      role: dbt_demo_data_engineer
+      authenticator: programmatic_access_token
+      token: "{{ env_var('DBT_ENV_SECRET_PAT') }}"
+      database: dev_dbt_demo
+      warehouse: dbt_demo_xs_wh
       schema: curated
       threads: 8
 ```
 
-### Verify Your Connection
+For PAT auth, set the environment variable before running dbt:
 
-```shell
-source .venv/bin/activate
-dbt debug
+```bash
+export DBT_ENV_SECRET_PAT="<your_programmatic_access_token>"
 ```
 
-You should see `All checks passed!` at the end.
+### 7. Do NOT Create a Virtual Environment
+
+The demo script intentionally creates the venv and installs dependencies **live** during Prompt 6. This is a key demo moment showing Cortex Code's ability to set up a project from scratch.
+
+If you create `.venv/` or run `dbt deps` beforehand, that demo moment is lost. The [Pre-Demo Checklist](#pre-demo-checklist) includes a step to delete `.venv/` to ensure a clean state.
