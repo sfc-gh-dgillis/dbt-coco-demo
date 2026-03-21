@@ -27,7 +27,7 @@ Run through this before each demo to ensure a clean starting state.
 3. **Clean state:** Delete leftover artifacts from any prior demo run:
    ```bash
    rm -rf .venv dbt_packages target
-   rm -f models/marts/schema.yml models/marts/f_daily_sales_summary.sql
+   rm -f models/marts/_schema.yml models/marts/f_daily_sales_summary.sql
    ```
 4. **Cortex Code:** Verify the CLI is authenticated -- `cortex connections list` should show your connection
 5. **Snowflake:** Verify raw data exists (quick sanity check):
@@ -151,13 +151,13 @@ This project does not have a virtual environment or dbt packages installed. Set 
 
 > **Story:** "This project has no contracts, constraints and zero tests. That's a problem. Let's fix it."
 
-### Prompt 8: Add schema.yml
+### Prompt 8: Add _schema.yml
 
 ```text
 This project has no model and column properties defined for the mart models. Make a plan to add a `_schema.yml` file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Exclude fact tables at this time as I want to focus on the dimensions first. Do not build yet, just create the YAML file.
 ```
 
-**Expected result:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/schema.yml` with model-level names and descriptions, column-level properties (name, description, data_type), and primary_key/foreign_key/not_null constraints -- all inferred from context.
+**Expected result:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/_schema.yml` with model-level names and descriptions, column-level properties (name, description, data_type), and primary_key/foreign_key/not_null constraints -- all inferred from context.
 
 ### Prompt 9: Commit the changes
 
@@ -244,10 +244,10 @@ Delete the daily_sales model file and drop the table in Snowflake if it was crea
 ### Prompt 18: Build the model correctly
 
 ```
-@models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
+@models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the _schema.yml with appropriate tests. Then compile and run it.
 ```
 
-**Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
+**Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/_schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
 
 ### Prompt 19: Query the results
 
