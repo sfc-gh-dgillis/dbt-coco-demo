@@ -7,3 +7,9 @@ tasks:
     cmds:
       - chmod +x ./tasks/validate-prerequisites/cmd/validate-snowcli.sh
       - ./tasks/validate-prerequisites/cmd/validate-snowcli.sh
+
+  snowcli-version:
+    desc: Validates that Snowflake CLI is installed and meets the minimum version requirement.
+    cmds:
+      - chmod +x ./tasks/validate-prerequisites/cmd/validate-snowcli-version.sh
+      - ./tasks/validate-prerequisites/cmd/validate-snowcli-version.sh "{{.MIN_VERSION}}"

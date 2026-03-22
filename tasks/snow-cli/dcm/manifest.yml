@@ -1,0 +1,12 @@
+manifest_version: 2
+type: DCM_PROJECT
+default_target: 'DEV'
+
+targets:
+  DEV:
+    project_name: 'DCM_ADMIN.PROJECTS.DBT_COCO_DEMO_DCM'
+    project_owner: SYSADMIN
+
+templating:
+  defaults:
+    db: 'DEV_DBT_DEMO'

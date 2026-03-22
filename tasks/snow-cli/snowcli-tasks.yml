@@ -12,6 +12,15 @@ tasks:
     cmds:
       - python3 ./tasks/snow-cli/pyutil/snowcliput/snowcliput.py "{{.FILE_UPLOAD_DIR}}" "{{.CLI_CONNECTION_NAME}}" "{{.INTERNAL_NAMED_STAGE}}"
 
+  deploy-dcm-project:
+    desc: Runs the full DCM deployment lifecycle (pre-deploy, deploy, post-deploy, post-deployment grants) to stand up the required Snowflake infrastructure.
+    cmds:
+      - snow sql -f "{{.DCM_PROJECT_PATH}}/pre_deploy.sql" -c "{{.CLI_CONNECTION_NAME}}" --role SYSADMIN
+      - snow dcm create "{{.DCM_PROJECT_IDENTIFIER}}" --if-not-exists -c "{{.CLI_CONNECTION_NAME}}" --database "{{.DCM_DATABASE}}"
+      - cd "{{.DCM_PROJECT_PATH}}" && snow dcm deploy "{{.DCM_PROJECT_IDENTIFIER}}" -c "{{.CLI_CONNECTION_NAME}}" --database "{{.DCM_DATABASE}}"
+      - snow sql -f "{{.DCM_PROJECT_PATH}}/post_deploy.sql" -c "{{.CLI_CONNECTION_NAME}}" --role SYSADMIN
+      - snow sql -f "{{.DCM_PROJECT_PATH}}/post_deployment_grants.sql" -c "{{.CLI_CONNECTION_NAME}}" --role ACCOUNTADMIN
+
   drop-database-if-exists:
     desc: Drops the specified Snowflake database if it exists using the Snowflake CLI.
     cmds:
