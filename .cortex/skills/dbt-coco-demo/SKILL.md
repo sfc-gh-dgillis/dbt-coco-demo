@@ -61,17 +61,22 @@ git branch --show-current
 git checkout main && git pull
 ```
 
-2. **Remove build artifacts:**
+2. **Delete the demo dev branch** if it exists. The branch name is configured as `DEMO_BRANCH_NAME` in `.env/demo.env` (see `.env/demo.env_template` for the default). Ask the user to confirm before deleting:
+```bash
+git branch -D <DEMO_BRANCH_NAME>
+```
+
+3. **Remove build artifacts:**
 ```bash
 rm -rf venv dbt_packages logs target package-lock.yml
 ```
 
-3. **Remove any generated model files** created during a demo session:
+4. **Remove any generated model files** created during a demo session:
 ```bash
 rm -f models/marts/_schema.yml models/marts/f_daily_sales_summary.sql
 ```
 
-Or with task (handles steps 2-3):
+Or with task (handles steps 3-4):
 ```bash
 task reset-demo
 ```

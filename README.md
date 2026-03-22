@@ -107,10 +107,10 @@ $trust-center Analyze my security posture
 Cortex Code works natively with Git -- it can create branches, stage files, commit changes, and more, all without leaving the CLI. It's good practice to work on a dev branch so we don't push untested changes directly to main.
 
 ```text
-Create a new branch called dgillis-dev and switch to it
+Create a new branch called dbt-coco-demo-dev and switch to it
 ```
 
-**Expected result:** Cortex Code runs `git checkout -b dgillis-dev` and confirms the switch. Reinforces that Cortex Code is a full development environment with native Git support -- branching, committing, diffing, all built in.
+**Expected result:** Cortex Code runs `git checkout -b dbt-coco-demo-dev` and confirms the switch. Reinforces that Cortex Code is a full development environment with native Git support -- branching, committing, diffing, all built in.
 
 ### Prompt 5: Explore the raw data
 
