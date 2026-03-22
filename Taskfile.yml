@@ -5,11 +5,14 @@ includes:
   snow-cli:
     taskfile: ./tasks/snow-cli/snowcli-tasks.yml
     dir: ./tasks/snow-cli
+  python:
+    taskfile: ./tasks/python/python-tasks.yml
   dbt:
     taskfile: ./tasks/dbt/dbt-tasks.yml
 
 env:
   ENV_DIR: .env
+  PATH: "{{.ROOT_DIR}}/venv/bin:{{.PATH}}"
 
 dotenv: ['{{ .ENV_DIR }}/{{ .DOTENV_FILENAME | default "demo.env" }}']
 
@@ -21,6 +24,10 @@ tasks:
       if using a custom .env file (filename does not have to be custom.env, but must end with .env).
 
     cmds:
+      - task: python:create-venv
+
+      - task: python:install-dbt
+
       - task: validate-prerequisites:snowcli
         silent: true
 
