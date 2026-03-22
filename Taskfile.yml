@@ -44,6 +44,14 @@ tasks:
           DATABASE_NAME: dev_dbt_demo
           SCHEMA_NAME: utilities
 
+  destroy-demo:
+    desc: Drops the demo database from Snowflake.
+    cmds:
+      - task: snow-cli:drop-database-if-exists
+        vars:
+          CLI_CONNECTION_NAME: $CLI_CONNECTION_NAME
+          DEMO_DATABASE_NAME: dev_dbt_demo
+
   reset-demo:
     desc: Remove all generated artifacts (venv, dbt_packages, logs, target, package-lock.yml)
     cmds:
