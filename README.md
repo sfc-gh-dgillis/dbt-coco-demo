@@ -2,20 +2,9 @@
 
 A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstrate Cortex Code CLI and dbt capabilities.
 
-> **First time setup?** See [Environment Setup](#environment-setup) at the end of this document.
-
-## Quick Start
-
-```bash
-# Activate virtual environment
-source .venv/bin/activate
-
-# Verify connection
-dbt debug
-
-# Build all models
-dbt build
-```
+> **First time setup?** See [Demo Environment Setup](#demo-environment-setup) at the end of this document.
+>
+> **Returning for another demo?** See the [Pre-Demo Checklist](#pre-demo-checklist) to reset your environment.
 
 ---
 
@@ -29,12 +18,52 @@ dbt build
 
 ---
 
-## Pre-Demo Setup
+## Pre-Demo Checklist
 
-1. Open a terminal in your IDE of choice in the `dbt-coco-demo` project directory
-2. Ensure `cortex` CLI is installed and authenticated
-3. Verify the dbt virtual environment works: `source .venv/bin/activate && dbt debug`
-4. Have Snowflake open in a browser tab (optional, for showing results in Snowsight)
+Run through this before each demo to ensure a clean starting state.
+
+1. **Terminal:** Open a terminal in the `dbt-coco-demo` project directory
+2. **Branch:** Ensure you're on `main` -- `git checkout main && git pull`
+3. **Clean state:** Delete leftover artifacts from any prior demo run:
+   ```bash
+   rm -rf .venv dbt_packages target
+   rm -f models/marts/_schema.yml models/marts/f_daily_sales_summary.sql
+   ```
+4. **Cortex Code:** Verify the CLI is authenticated -- `cortex connections list` should show your connection
+5. **Snowflake:** Verify raw data exists (quick sanity check):
+   ```sql
+   SELECT COUNT(*) FROM dev_dbt_demo.raw.country;  -- should return 30
+   ```
+6. **Browser tab:** Open Snowsight in a browser (optional, for showing query results visually)
+
+> **Important:** Do NOT create a virtual environment or install dbt deps before the demo. Prompt 6 does this live as a demo moment.
+
+---
+
+## Choosing a Model
+
+Cortex Code supports multiple LLM models. You can switch models at any time during a session with the `/model` command, or set one at launch with `cortex --model <identifier>`.
+
+| Model | Identifier | Best For |
+|-------|-----------|----------|
+| **Auto (recommended)** | `auto` | Automatically selects the best available model for your account; upgrades as new models ship |
+| **Claude Opus 4.6** | `claude-opus-4-6` | Most capable -- complex reasoning, multi-step tasks, architectural planning |
+| **Claude Sonnet 4.6** | `claude-sonnet-4-6` | Strong balance of speed and quality for everyday development |
+| **Claude Opus 4.5** | `claude-opus-4-5` | Previous-gen flagship -- still excellent for complex work |
+| **Claude Sonnet 4.5** | `claude-sonnet-4-5` | Previous-gen default -- fast and reliable |
+| **Claude Sonnet 4.0** | `claude-4-sonnet` | Lightweight option with broad regional availability |
+| **OpenAI GPT 5.2** | `openai-gpt-5.2` | OpenAI's latest (preview) -- requires `AZURE_US` cross-region inference |
+
+**How to choose:**
+- Start with **`auto`** -- Cortex picks the best model available to your account and you automatically benefit when better models are released.
+- Use **Opus** when you need the highest quality: complex multi-file refactors, debugging tricky issues, or architectural decisions.
+- Use **Sonnet** for day-to-day work: building models, writing tests, exploring data, running queries.
+- **OpenAI GPT 5.2** is available in preview. It requires an ACCOUNTADMIN to enable cross-region inference to Azure US:
+  ```sql
+  ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AZURE_US';
+  ```
+
+**Regional availability:** Not all models are available in every region. If a model isn't available in yours, enable [cross-region inference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions#cross-region-inference) by setting `CORTEX_ENABLED_CROSS_REGION` (requires ACCOUNTADMIN). Use `AWS_US` for best Claude Opus coverage, or `ANY_REGION` for broadest access.
 
 ---
 
@@ -45,10 +74,10 @@ dbt build
 ### Prompt 1: Explore the project
 
 ```
-What is this dbt project? Give me a summary of the data domain, the sources, the model layers, and any custom macros or UDFs.
+@dbt_project.yml What is this dbt project? Give me a summary of the data domain, the sources, the model layers, and any custom macros or UDFs.
 ```
 
-**Expected result:** Cortex Code reads `dbt_project.yml`, the source YAMLs, the staging models, the mart models, and the macros. It synthesizes a clear summary: Tasty Bytes food truck company, 3 source systems (POS, Customer Loyalty, SafeGraph), 2-layer DAG (staging views → mart tables), custom UDFs, and `codegen`/`dbt_utils` packages. Skills are what make this possible -- domain-specific instruction sets that give it deep knowledge of dbt, Streamlit, Snowpark, and more.
+**Expected result:** The `@` prefix injects the file's contents directly into the prompt as context -- no copy-pasting needed. Cortex Code reads `dbt_project.yml` (provided via the `@` mention), then follows references to the source YAMLs, staging models, mart models, and macros. It synthesizes a clear summary: Tasty Bytes food truck company, 3 source systems (POS, Customer Loyalty, SafeGraph), 2-layer DAG (staging views → mart tables), custom UDFs, and `codegen`/`dbt_utils` packages. Skills are what make this possible -- domain-specific instruction sets that give it deep knowledge of dbt, Streamlit, Snowpark, and more.
 
 > **Aside: How did it know all that?** → **skills**
 >
@@ -111,10 +140,10 @@ This project does not have a virtual environment or dbt packages installed. Set 
 ### Prompt 7: Understand lineage
 
 ```
-What does the f_order_line model depend on? Trace the full lineage back to raw sources.
+@models/marts/f_order_line.sql What does this model depend on? Trace the full lineage back to raw sources.
 ```
 
-**Expected result:** Cortex Code traces the full lineage: `raw.order_detail -> stg_pos__order_detail -> f_order_line`. No files read manually -- it understands dbt project structure natively.
+**Expected result:** The `@` mention feeds the model's SQL directly into the prompt so Cortex Code can see the `ref()` calls immediately. It traces the full lineage: `raw.order_detail -> stg_pos__order_detail -> f_order_line`. No manual file hunting -- `@` gives it the starting point, and the dbt skill traces the rest.
 
 ---
 
@@ -122,13 +151,13 @@ What does the f_order_line model depend on? Trace the full lineage back to raw s
 
 > **Story:** "This project has no contracts, constraints and zero tests. That's a problem. Let's fix it."
 
-### Prompt 8: Add schema.yml
+### Prompt 8: Add _schema.yml
 
 ```text
 This project has no model and column properties defined for the mart models. Make a plan to add a `_schema.yml` file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Exclude fact tables at this time as I want to focus on the dimensions first. Do not build yet, just create the YAML file.
 ```
 
-**Expected result:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/schema.yml` with model-level names and descriptions, column-level properties (name, description, data_type), and primary_key/foreign_key/not_null constraints -- all inferred from context.
+**Expected result:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/_schema.yml` with model-level names and descriptions, column-level properties (name, description, data_type), and primary_key/foreign_key/not_null constraints -- all inferred from context.
 
 ### Prompt 9: Commit the changes
 
@@ -172,25 +201,73 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 ---
 
+### Prompt 14: Compact the context
+
+We've done a lot of work -- schema generation, test writing, builds. The conversation context is getting long, which can slow down responses and use up the context window. Let's compact it before starting fresh.
+
+```
+/compact
+```
+
+**Expected result:** Cortex Code summarizes the entire conversation history into a condensed form and frees up context window space. All the important state is preserved (what files exist, what was built, what branch we're on), but the verbose back-and-forth is compressed. Think of it as garbage collection for your conversation. Use `/compact` proactively during long sessions to keep things snappy.
+
+---
+
 ## Act 3: New Feature Build (~3-4 min)
 
 > **Story:** "The business team wants a daily sales summary. Let's build it."
 
-### Prompt 14: Build a new model
+### Prompt 15: Fork before building
 
 ```
-Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the existing conventions in this project -- use surrogate keys, ref() macros, and the same SQL style. Add it to the schema.yml with appropriate tests. Then compile and run it.
+/fork before-new-model
 ```
 
-**Expected result:** Cortex Code writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/schema.yml` with tests, compiles, and materializes it. It matches the existing surrogate key pattern, naming conventions, and SQL formatting -- because it read the other models first.
+**Expected result:** Cortex Code creates a new session branched from this point -- a checkpoint before we start building. This is like `git branch` for your conversation. If the next few prompts go sideways, we can come back to this exact state. The original session is preserved untouched.
 
-### Prompt 15: Query the results
+> **Aside:** `/fork` and `/rewind` are session management commands. `/fork` creates a non-destructive branch (keeps the original). `/rewind` rolls back destructively (discards messages). We'll see both in action.
+
+### Prompt 16: Build the wrong thing (intentional)
 
 ```
-Show me the top 10 days by total revenue from f_daily_sales_summary
+Build a new mart model called daily_sales that has columns for date, total_revenue, and total_orders. Materialize it as a view.
 ```
 
-**Expected result:** Cortex Code runs a SQL query directly against Snowflake and returns a formatted result table -- no context switching to another tool.
+**Expected result:** Cortex Code builds the model -- but it's wrong. The name doesn't follow the `f_` prefix convention, it's missing the truck/location/menu item grain we actually want, and it's materialized as a view instead of a table. This is intentional -- we're about to undo it.
+
+### Prompt 17: Rewind the mistake
+
+```
+/rewind 1
+```
+
+**Expected result:** Cortex Code rolls back one user message, discarding the bad model build from the conversation. However, `/rewind` only rolls back the *conversation state* -- any files written to disk or tables materialized in Snowflake are still there. We need to clean those up.
+
+### Prompt 18: Clean up the mess
+
+```
+Delete the daily_sales model file and drop the table in Snowflake if it was created.
+```
+
+**Expected result:** Cortex Code removes the file from disk and drops the table from Snowflake. This is the full undo -- conversation rewound, file deleted, table dropped. Now we can re-prompt with the correct requirements.
+
+> **Aside:** `/rewind` is destructive -- it throws away everything after the rewind point. Use `/fork` when you might want to come back, and `/rewind` when you know the recent work was wrong. Remember that `/rewind` only affects the conversation -- any side effects (files, tables, git commits) need to be cleaned up separately.
+
+### Prompt 19: Build the model correctly
+
+```
+@models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the _schema.yml with appropriate tests. Then compile and run it.
+```
+
+**Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/_schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
+
+### Prompt 20: Query the results
+
+```
+#DEV_DBT_DEMO.CURATED.F_DAILY_SALES_SUMMARY Show me the top 10 days by total revenue
+```
+
+**Expected result:** The `#` prefix auto-injects the table's column schema and sample rows into the prompt, so Cortex Code knows exactly what columns are available without guessing. It runs a SQL query directly against Snowflake and returns a formatted result table -- no context switching to another tool.
 
 ---
 
@@ -198,21 +275,21 @@ Show me the top 10 days by total revenue from f_daily_sales_summary
 
 > **Story:** "While I'm here, let me answer a few quick business questions."
 
-### Prompt 16: Business question
+### Prompt 21: Business question
 
 ```
-What are the top 5 menu items by total revenue?
+#DEV_DBT_DEMO.CURATED.F_ORDER_LINE #DEV_DBT_DEMO.CURATED.D_MENU_ITEM What are the top 5 menu items by total revenue?
 ```
 
-**Expected result:** Cortex Code writes and executes a query joining `f_order_line` with `d_menu_item`, returning a formatted results table.
+**Expected result:** Both `#` mentions inject their schemas into context, so Cortex Code sees the join key and revenue columns before writing a single line of SQL. It writes and executes a query joining the two tables, returning a formatted results table.
 
-### Prompt 17: Another business question
+### Prompt 22: Another business question
 
 ```
-How many loyalty members signed up each year?
+#DEV_DBT_DEMO.CURATED.D_LOYALTY_MEMBER How many loyalty members signed up each year?
 ```
 
-**Expected result:** A quick query against `d_loyalty_member` grouped by year. No SQL IDE needed -- explore data, build models, and run tests all in one place.
+**Expected result:** A quick query against the table, grouped by year. The `#` mention ensures Cortex Code knows the exact column name for the sign-up date without having to look it up. No SQL IDE needed -- explore data, build models, and run tests all in one place.
 
 ---
 
@@ -220,7 +297,7 @@ How many loyalty members signed up each year?
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 18: Commit
+### Prompt 23: Commit
 
 ```
 Commit all changes with an appropriate message
@@ -276,54 +353,109 @@ dbt run-operation generate_model_yaml --args '{"model_names": ["model_name"], "u
 
 ---
 
-## Environment Setup
+## Demo Environment Setup
 
-### Minimum Requirements
+One-time setup for SEs running this demo from scratch.
 
-- [git](https://git-scm.com/)
-- [Python 3.9+](https://www.python.org/downloads/)
-- [uv](https://docs.astral.sh/uv/) - Python package and project manager
+### 1. Local Prerequisites
 
-### Get the Code
+Install these tools on your machine:
 
-```shell
+| Tool | Install |
+|------|---------|
+| **git** | [git-scm.com](https://git-scm.com/) |
+| **Python 3.10+** | [python.org](https://www.python.org/downloads/) |
+| **uv** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| **Cortex Code CLI** | `snow cortex code install` (requires [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)) |
+
+### 2. Clone the Repo
+
+```bash
 git clone https://github.com/sfc-gh-dgillis/dbt-coco-demo.git
 cd dbt-coco-demo
 ```
 
-### Virtual Environment Setup
+### 3. Cortex Code CLI Authentication
 
-Install uv if you don't have it:
+Cortex Code authenticates via a Snowflake connection defined in `~/.snowflake/connections.toml`. If you already have a connection configured (e.g., from Snowflake CLI), verify it works:
 
-```shell
-curl -LsSf https://astral.sh/uv/install.sh | sh
+```bash
+cortex connections list
 ```
 
-Create and activate the virtual environment:
+If you need to create a connection, add an entry to `~/.snowflake/connections.toml`:
 
-```shell
-uv venv
-source .venv/bin/activate
+```toml
+[my_demo_connection]
+account = "<your_account_identifier>"
+user = "<your_username>"
+authenticator = "SNOWFLAKE_JWT"
+private_key_file = "<path_to_your_private_key.p8>"
+role = "dbt_demo_data_engineer"
+warehouse = "dbt_demo_xs_wh"
+database = "dev_dbt_demo"
+schema = "curated"
 ```
 
-Install dbt:
+Then set it as the active connection:
 
-```shell
-uv pip install dbt-core dbt-snowflake
+```bash
+cortex connections set my_demo_connection
 ```
 
-### Connection Profile Setup
+### 4. Snowflake Account Setup
 
-dbt uses [connection profiles](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) stored in `~/.dbt/profiles.yml`.
+Run the batch-1 SQL scripts **in order** in a Snowflake worksheet (or via SnowSQL). These require SYSADMIN/SECURITYADMIN/ACCOUNTADMIN roles.
 
-Create the directory and file:
+| Script | What It Creates | Role Required |
+|--------|----------------|---------------|
+| `tasks/snow-cli/sql/batch-1/1_create_warehouses.sql` | 6 warehouses (xs through xxl) | SYSADMIN |
+| `tasks/snow-cli/sql/batch-1/2_init_roles.sql` | 4 roles (rw, ro, data_engineer, analyst) | SECURITYADMIN |
+| `tasks/snow-cli/sql/batch-1/3_create_db_schema.sql` | `dev_dbt_demo` database + 4 schemas (raw, curated, modeled, utilities) | SYSADMIN |
+| `tasks/snow-cli/sql/batch-1/4_grants.sql` | Comprehensive grants for all roles/schemas/warehouses | ACCOUNTADMIN + SECURITYADMIN |
 
-```shell
+> **Important:** The grants script (`4_grants.sql`) contains a `GRANT ROLE ... TO USER tastyb` statement on the last line. **Edit this to your own Snowflake username** before running.
+
+### 5. Load Raw Data
+
+Run the batch-2 data load script in a Snowflake worksheet:
+
+```
+tasks/snow-cli/sql/batch-2/5_load_raw_data.sql
+```
+
+This script:
+- Creates an external stage pointing to the public Tasty Bytes S3 bucket (`s3://sfquickstarts/frostbyte_tastybytes/`)
+- Creates all 9 raw source tables in `dev_dbt_demo.raw`
+- Loads data via `COPY INTO` from the stage
+- Uses `dbt_demo_l_wh` (Large warehouse) for bulk loading
+
+**Estimated time:** ~5-10 minutes (the order_header and order_detail tables are 248M and 674M rows respectively).
+
+**Verify** the load succeeded with the row count query at the end of the script:
+
+| Table | Expected Rows |
+|-------|--------------|
+| country | 30 |
+| franchise | 325 |
+| location | 13,093 |
+| menu | 100 |
+| truck | 450 |
+| order_header | ~248M |
+| order_detail | ~674M |
+| customer_loyalty | 222,541 |
+| core_poi_geometry | 15,000 |
+
+### 6. dbt Connection Profile
+
+dbt uses [connection profiles](https://docs.getdbt.com/docs/core/connect-data-platform/connection-profiles) stored in `~/.dbt/profiles.yml`. Create the file if it doesn't exist:
+
+```bash
 mkdir -p ~/.dbt
 touch ~/.dbt/profiles.yml
 ```
 
-Add your target configuration. Below are examples for key pair and PAT authentication:
+Add a profile matching this project's `dbt_project.yml` (profile name: `default`):
 
 ```yaml
 default:
@@ -333,10 +465,10 @@ default:
       type: snowflake
       account: <your_account_identifier>
       user: <your_username>
-      role: <your_role>
+      role: dbt_demo_data_engineer
       private_key_path: <path_to_your_private_key.p8>
-      database: <your_database>
-      warehouse: <your_warehouse>
+      database: dev_dbt_demo
+      warehouse: dbt_demo_xs_wh
       schema: curated
       threads: 8
 
@@ -344,19 +476,23 @@ default:
       type: snowflake
       account: <your_account_identifier>
       user: <your_username>
-      role: <your_role>
-      password: "{{ env_var('DBT_ENV_SECRET_PAT') }}"
-      database: <your_database>
-      warehouse: <your_warehouse>
+      role: dbt_demo_data_engineer
+      authenticator: programmatic_access_token
+      token: "{{ env_var('DBT_ENV_SECRET_PAT') }}"
+      database: dev_dbt_demo
+      warehouse: dbt_demo_xs_wh
       schema: curated
       threads: 8
 ```
 
-### Verify Your Connection
+For PAT auth, set the environment variable before running dbt:
 
-```shell
-source .venv/bin/activate
-dbt debug
+```bash
+export DBT_ENV_SECRET_PAT="<your_programmatic_access_token>"
 ```
 
-You should see `All checks passed!` at the end.                                                                                      
+### 7. Do NOT Create a Virtual Environment
+
+The demo script intentionally creates the venv and installs dependencies **live** during Prompt 6. This is a key demo moment showing Cortex Code's ability to set up a project from scratch.
+
+If you create `.venv/` or run `dbt deps` beforehand, that demo moment is lost. The [Pre-Demo Checklist](#pre-demo-checklist) includes a step to delete `.venv/` to ensure a clean state.

@@ -1,14 +1,25 @@
 version: '3'
 
+vars:
+  VENV_BIN:
+    sh: echo "{{.ROOT_DIR}}/venv/bin"
+
 tasks:
+
+  deps:
+    desc: Install dbt package dependencies
+    status:
+      - test -d "{{.ROOT_DIR}}/dbt_packages"
+    cmds:
+      - "{{.VENV_BIN}}/dbt deps"
 
   debug:
     cmds:
-      - dbt debug --target dev-tastyb --project-dir .
+      - "{{.VENV_BIN}}/dbt debug --target dev-tastyb --project-dir ."
 
   create-udf-concatenate-object-values:
     cmds:
-      - dbt run-operation create_udf_concatenate_object_values --target "{{.TARGET}}" --args "{{.ARGS}}"
+      - "{{.VENV_BIN}}/dbt run-operation create_udf_concatenate_object_values --target \"{{.TARGET}}\" --args \"{{.ARGS}}\""
 
   test-udf-concatenate-object-values:
     cmds:
@@ -17,16 +28,16 @@ tasks:
 
   build-all:
     cmds:
-      - dbt build --target dev-tastyb --project-dir .
+      - "{{.VENV_BIN}}/dbt build --target dev-tastyb --project-dir ."
 
   build-country-dimension:
     cmds:
-      - dbt build --target dev-tastyb --project-dir . --select d_country
+      - "{{.VENV_BIN}}/dbt build --target dev-tastyb --project-dir . --select d_country"
 
   docs-generate-and-serve:
     cmds:
-      - dbt docs generate --target dev-tastyb --project-dir .
-      - dbt docs serve --target dev-tastyb --project-dir .
+      - "{{.VENV_BIN}}/dbt docs generate --target dev-tastyb --project-dir ."
+      - "{{.VENV_BIN}}/dbt docs serve --target dev-tastyb --project-dir ."
 
 #  generate-base-model:
 #    cmds:

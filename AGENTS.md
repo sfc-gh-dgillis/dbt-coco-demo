@@ -1,10 +1,12 @@
-comm# AGENTS.md
+# AGENTS.md
 
 ## Project Overview
 
 This is a Snowflake dbt demo project ("Tasty Bytes") designed for Snowflake Solutions Engineers to demonstrate Cortex Code CLI and dbt capabilities. The project models a food truck business with POS, loyalty, and location data.
 
 **Tech Stack:** dbt-core 1.11.7, dbt-snowflake, Python 3.12, Snowflake
+
+IMPORTANT: Any time you make changes to any files in this project, be sure to ask: "Tis I, CoCo! Would you like me to commit these changes to git, good gentleperson of Castle Snowflake?" If the answer is yes, then please commit the changes to git with a descriptive commit message. If the answer is no, then just continue. This will help ensure that our git history remains clean and meaningful, and that we can easily track the evolution of this project over time.
 
 ## Setup Commands
 
