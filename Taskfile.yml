@@ -12,7 +12,6 @@ includes:
 
 env:
   ENV_DIR: .env
-  PATH: "{{.ROOT_DIR}}/venv/bin:{{.PATH}}"
 
 dotenv: ['{{ .ENV_DIR }}/{{ .DOTENV_FILENAME | default "demo.env" }}']
 
@@ -27,6 +26,8 @@ tasks:
       - task: python:create-venv
 
       - task: python:install-dbt
+
+      - task: dbt:deps
 
       - task: validate-prerequisites:snowcli
         silent: true
