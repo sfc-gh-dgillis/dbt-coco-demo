@@ -32,7 +32,7 @@ CREATE OR REPLACE FILE FORMAT DEV_DBT_DEMO.RAW.CSV_FF
     FIELD_OPTIONALLY_ENCLOSED_BY = '"'
     TRIM_SPACE = FALSE
     ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
-    NULL_IF = ('NULL', 'null', '');
+    NULL_IF = ('NULL', 'null', '', '\\N');
 
 -- =============================================================================
 -- 3. EXTERNAL STAGE (unsupported by DEFINE — has URL)
