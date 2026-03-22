@@ -14,6 +14,7 @@ This skill helps Snowflake Solution Engineers operate the Tasty Bytes dbt demo p
 - The default dbt target is **`dev-keypair-auth`** (key pair auth). An alternative is `dev-pat-auth` (PAT auth)
 - Default databases: `dev_dbt_demo` (dev), `dbt_demo` (prod)
 - Default schemas: `curated` (marts), `raw` (sources/staging)
+- **Snowflake CLI 3.16+** is required for DCM operations (`snow dcm raw-analyze`, etc.). Check with `snow --version`. If below 3.16, upgrade with `pip install snowflake-cli --upgrade`
 
 ## Quick Reference: What to Run
 

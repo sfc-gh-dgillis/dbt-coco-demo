@@ -2,9 +2,9 @@
 
 A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstrate Cortex Code CLI and dbt capabilities.
 
-> **First time setup?** See [Demo Environment Setup](#demo-environment-setup) at the end of this document.
+> **First time setup?** See [Demo Environment Setup](#demo-environment-setup) for one-time Snowflake account configuration.
 >
-> **Returning for another demo?** See the [Pre-Demo Checklist](#pre-demo-checklist) to reset your environment.
+> **Returning for another demo?** Open Cortex Code in the project directory and tell it to "reset the demo". The `dbt-coco-demo` skill handles the rest.
 
 ---
 
@@ -22,19 +22,10 @@ A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstra
 
 Run through this before each demo to ensure a clean starting state.
 
-1. **Terminal:** Open a terminal in the `dbt-coco-demo` project directory
-2. **Branch:** Ensure you're on `main` -- `git checkout main && git pull`
-3. **Clean state:** Delete leftover artifacts from any prior demo run:
-   ```bash
-   rm -rf .venv dbt_packages target
-   rm -f models/marts/_schema.yml models/marts/f_daily_sales_summary.sql
-   ```
-4. **Cortex Code:** Verify the CLI is authenticated -- `cortex connections list` should show your connection
-5. **Snowflake:** Verify raw data exists (quick sanity check):
-   ```sql
-   SELECT COUNT(*) FROM dev_dbt_demo.raw.country;  -- should return 30
-   ```
-6. **Browser tab:** Open Snowsight in a browser (optional, for showing query results visually)
+1. **Open Cortex Code** in the `dbt-coco-demo` project directory
+2. **Reset the demo** — tell Cortex Code to "reset the demo and switch to the main branch". The `dbt-coco-demo` skill cleans up artifacts (venv, dbt_packages, target, generated model files) and gets you back to a clean `main`
+3. **Verify the environment** — ask Cortex Code to "verify the Snowflake connection and check that raw data exists". It runs `dbt debug` and a row count sanity check for you
+4. **Browser tab** — open Snowsight in a browser (optional, for showing query results visually)
 
 > **Important:** Do NOT create a virtual environment or install dbt deps before the demo. Prompt 6 does this live as a demo moment.
 
@@ -86,7 +77,7 @@ Cortex Code supports multiple LLM models. You can switch models at any time duri
 > Skills are one of the key extensibility mechanisms in Cortex Code. There are three categories:
 >
 > - **Bundled skills** ship with the CLI (dbt, Streamlit, data governance, ML, cost intelligence, lineage, and more)
-> - **Custom skills** are Markdown files you create in `.cortex/skills/` (project-level) or `~/.snowflake/cortex/skills/` (global) to encode your team's conventions
+> - **Custom skills** are Markdown files you create in `.cortex/skills/` (project-level) or `~/.snowflake/cortex/skills/` (global) to encode your team's conventions. This project includes one: `dbt-coco-demo` (in `.cortex/skills/dbt-coco-demo/SKILL.md`), which knows how to set up, reset, build, and test the demo without you needing to remember any commands
 > - **Remote skills** can be pulled from Git repos and shared across your organization
 >
 > You can invoke a skill explicitly by prefixing it with `$` (e.g., `$data-quality`, `$lineage`), or Cortex Code activates the right skill automatically based on your prompt. Run `/skill list` to see all available skills.
@@ -136,6 +127,8 @@ Run row counts on all the raw source tables and give me a summary of what data w
 ```text
 This project does not have a virtual environment or dbt packages installed. Set those up now. Ensure the virtual environment is added to .gitignore so it doesn't get committed.
 ```
+
+**Expected result:** The `dbt-coco-demo` skill activates automatically and handles the full setup: creates a virtual environment, installs dbt-core and dbt-snowflake, runs `dbt deps`, and verifies the Snowflake connection. It also adds the venv directory to `.gitignore`. The skill knows the exact versions and target to use -- no need to remember CLI flags or install commands.
 
 ### Prompt 7: Understand lineage
 
@@ -355,7 +348,7 @@ dbt run-operation generate_model_yaml --args '{"model_names": ["model_name"], "u
 
 ## Demo Environment Setup
 
-One-time setup for SEs running this demo from scratch.
+One-time setup for SEs running this demo from scratch. After this initial setup, ongoing operations (setup, reset, build, test) can be handled conversationally via the `dbt-coco-demo` skill in Cortex Code.
 
 ### 1. Local Prerequisites
 
@@ -366,7 +359,8 @@ Install these tools on your machine:
 | **git** | [git-scm.com](https://git-scm.com/) |
 | **Python 3.10+** | [python.org](https://www.python.org/downloads/) |
 | **uv** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| **Cortex Code CLI** | `snow cortex code install` (requires [Snowflake CLI](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)) |
+| **Snowflake CLI 3.16+** | `pip install snowflake-cli --upgrade` ([installation docs](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)) |
+| **Cortex Code CLI** | `snow cortex code install` (requires Snowflake CLI above) |
 
 ### 2. Clone the Repo
 
