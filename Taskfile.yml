@@ -46,6 +46,10 @@ tasks:
 
   demo-init:
     desc: Runs the full DCM deployment to stand up the required Snowflake infrastructure (database, schemas, roles, warehouses, tables, grants, and raw data load).
+    vars:
+      DCM_DATABASE: DCM_ADMIN
+      DCM_SCHEMA: PROJECTS
+      DCM_PROJECT_NAME: DBT_COCO_DEMO_DCM
     cmds:
       - task: validate-prerequisites:snowcli-version
         vars:
@@ -54,8 +58,8 @@ tasks:
         vars:
           CLI_CONNECTION_NAME: $CLI_CONNECTION_NAME
           DCM_PROJECT_PATH: dcm
-          DCM_PROJECT_IDENTIFIER: DCM_ADMIN.PROJECTS.DBT_COCO_DEMO_DCM
-          DCM_DATABASE: DCM_ADMIN
+          DCM_PROJECT_IDENTIFIER: "{{.DCM_DATABASE}}.{{.DCM_SCHEMA}}.{{.DCM_PROJECT_NAME}}"
+          DCM_DATABASE: "{{.DCM_DATABASE}}"
 
   destroy-demo:
     desc: Drops the demo database from Snowflake.
