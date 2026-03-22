@@ -43,3 +43,8 @@ tasks:
           WAREHOUSE: dbt_demo_xs_wh
           DATABASE_NAME: dev_dbt_demo
           SCHEMA_NAME: utilities
+
+  reset-demo:
+    desc: Remove all generated artifacts (venv, dbt_packages, logs, target, package-lock.yml)
+    cmds:
+      - rm -rf venv dbt_packages logs target package-lock.yml
