@@ -50,13 +50,28 @@ Check the status of each prerequisite before running it -- skip steps that are a
 
 ### Resetting the Demo (Clean Slate)
 
-When the user wants to reset, clean, tear down, or start over:
+When the user wants to reset, clean, tear down, or start over, run these steps in order:
 
+1. **Check the current branch.** If not on `main`, inform the user and ask if they want to switch. Explain that the demo script includes creating a dev branch as a live demo moment (Prompt 4 in Act 1), so starting from `main` ensures a clean slate and keeps that step intact. If they confirm, switch and pull latest:
+```bash
+# Check current branch
+git branch --show-current
+
+# If not on main, ASK THE USER before switching:
+git checkout main && git pull
+```
+
+2. **Remove build artifacts:**
 ```bash
 rm -rf venv dbt_packages logs target package-lock.yml
 ```
 
-Or with task:
+3. **Remove any generated model files** created during a demo session:
+```bash
+rm -f models/marts/_schema.yml models/marts/f_daily_sales_summary.sql
+```
+
+Or with task (handles steps 2-3):
 ```bash
 task reset-demo
 ```
