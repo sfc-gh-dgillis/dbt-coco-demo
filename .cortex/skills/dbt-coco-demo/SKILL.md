@@ -1,5 +1,5 @@
 ---
-name: tasty-bytes-demo
+name: dbt-coco-demo
 description: "Manage the Tasty Bytes dbt demo project. Use this skill whenever the user mentions: demo setup, demo reset, build models, run tests, dbt build, dbt test, dbt docs, Tasty Bytes, food truck data, set up the demo, clean up, reset environment, run the demo, project structure, staging models, mart models, dimension tables, fact tables, or any dbt/demo operations in this project. Always use this skill for demo-related tasks even if the user doesn't explicitly say 'demo'."
 ---
 
