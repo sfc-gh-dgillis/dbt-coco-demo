@@ -100,7 +100,7 @@ Do NOT read or modify `~/.dbt/profiles.yml` directly as it contains credentials.
 ## Important Notes
 
 - Default database: `dbt_demo` (prod) or `dev_dbt_demo` (dev)
-- Default schema: `curated` for marts, `raw` for sources
+- Default schema: `modeled` for marts, `raw` for sources
 - Staging models materialize as views
 - Mart models materialize as tables
 - Always use the full object name (database.schema.table) in output and SQL for clarity and to avoid ambiguity
