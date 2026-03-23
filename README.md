@@ -22,16 +22,22 @@ A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstra
 
 Run through this before each demo to ensure a clean starting state.
 
-1. **Open Cortex Code** in the `dbt-coco-demo` project directory
+1. **Open Cortex Code** in the `dbt-coco-demo` project directory root
 2. **Reset the demo** — tell Cortex Code to "reset the demo and switch to the main branch". The `dbt-coco-demo` skill cleans up artifacts (venv, dbt_packages, target, generated model files) and gets you back to a clean `main`
 3. **Verify the environment** — ask Cortex Code to "verify the Snowflake connection and check that raw data exists". It runs `dbt debug` and a row count sanity check for you
 4. **Browser tab** — open Snowsight in a browser (optional, for showing query results visually)
 
-> **Important:** Do NOT create a virtual environment or install dbt deps before the demo. Prompt 6 does this live as a demo moment.
+> **Important:** Do NOT create a virtual environment or install dbt deps before the demo. Prompt 7 does this live as a demo moment.
 
 ---
 
-## Choosing a Model
+## Act 1: Orientation (~2 min)
+
+> **Story:** "I just cloned this repo from a teammate who left the company. I have no idea what it does."
+
+It's a dbt project, but that's all you know. Let's use Cortex Code to explore and understand it before we start making changes. If you haven't already, start Cortex Code CLI in a terminal in the project directory root and follow along with the prompts below.
+
+### Prompt 1: Choose a model
 
 Cortex Code supports multiple LLM models. You can switch models at any time during a session with the `/model` command, or set one at launch with `cortex --model <identifier>`.
 
@@ -56,13 +62,13 @@ Cortex Code supports multiple LLM models. You can switch models at any time duri
 
 **Regional availability:** Not all models are available in every region. If a model isn't available in yours, enable [cross-region inference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions#cross-region-inference) by setting `CORTEX_ENABLED_CROSS_REGION` (requires ACCOUNTADMIN). Use `AWS_US` for best Claude Opus coverage, or `ANY_REGION` for broadest access.
 
----
+```
+/model claude-opus-4-6
+```
 
-## Act 1: Orientation (~2 min)
+**Expected result:** Cortex Code switches to the selected model. Use this to show the audience the available models and how easy it is to switch. This is a good moment to talk through the model tradeoffs before diving into the project.
 
-> **Story:** "I just cloned this repo from a teammate who left the company. I have no idea what it does."
-
-### Prompt 1: Explore the project
+### Prompt 2: Explore the project
 
 ```
 @dbt_project.yml What is this dbt project? Give me a summary of the data domain, the sources, the model layers, and any custom macros or UDFs.
@@ -82,7 +88,7 @@ Cortex Code supports multiple LLM models. You can switch models at any time duri
 >
 > You can invoke a skill explicitly by prefixing it with `$` (e.g., `$data-quality`, `$lineage`), or Cortex Code activates the right skill automatically based on your prompt. Run `/skill list` to see all available skills.
 
-### Prompt 2: Check data quality on the source tables
+### Prompt 3: Check data quality on the source tables
 
 Now that we know what the project does, let's see if the source data is trustworthy before we start building. This uses the `$data-quality` skill to do a quick assessment.
 
@@ -92,7 +98,7 @@ $data-quality Run a quick quality scan on the raw source tables in this project.
 
 **Expected result:** Cortex Code activates the data-quality skill, identifies the source tables from the dbt project, and runs targeted SQL checks -- null rates on primary keys, row count validation, and anomaly detection. It returns a plain-English summary of data health. No SQL written by hand -- the skill knew exactly what to look for.
 
-### Prompt 3: Analyze security posture
+### Prompt 4: Analyze security posture
 
 While we're assessing the project, let's check the account's security posture. The `$trust-center` skill connects to Snowflake's Trust Center -- a built-in security scanner that continuously monitors your account for vulnerabilities, misconfigurations, and threats.
 
@@ -102,7 +108,7 @@ $trust-center Analyze my security posture
 
 **Expected result:** Cortex Code activates the trust-center skill, queries the Trust Center findings, and returns a structured security report: severity distribution, active findings by scanner, trends, and specific remediation steps with SQL to fix them. Same Trust Center from Snowsight, but queried conversationally from the terminal.
 
-### Prompt 4: Cut a dev branch
+### Prompt 5: Cut a dev branch
 
 Cortex Code works natively with Git -- it can create branches, stage files, commit changes, and more, all without leaving the CLI. It's good practice to work on a dev branch so we don't push untested changes directly to main.
 
@@ -112,7 +118,7 @@ Create a new branch called dbt-coco-demo-dev and switch to it
 
 **Expected result:** Cortex Code runs `git checkout -b dbt-coco-demo-dev` and confirms the switch. Reinforces that Cortex Code is a full development environment with native Git support -- branching, committing, diffing, all built in.
 
-### Prompt 5: Explore the raw data
+### Prompt 6: Explore the raw data
 
 Cortex Code connects directly to Snowflake -- no extra configuration, no context switching to a SQL IDE. Let's use that to get a feel for the raw data before we start building.
 
@@ -122,7 +128,7 @@ Run row counts on all the raw source tables and give me a summary of what data w
 
 **Expected result:** Cortex Code executes SQL directly against Snowflake, returning row counts for all source tables and a plain-English summary of the data -- table purposes, key columns, and approximate scale. No need to open Snowsight or a SQL IDE.
 
-### Prompt 6: Setup dbt
+### Prompt 7: Setup dbt
 
 ```text
 This project does not have a virtual environment or dbt packages installed. Set those up now. Ensure the virtual environment is added to .gitignore so it doesn't get committed.
@@ -130,7 +136,7 @@ This project does not have a virtual environment or dbt packages installed. Set 
 
 **Expected result:** The `dbt-coco-demo` skill activates automatically and handles the full setup: creates a virtual environment, installs dbt-core and dbt-snowflake, runs `dbt deps`, and verifies the Snowflake connection. It also adds the venv directory to `.gitignore`. The skill knows the exact versions and target to use -- no need to remember CLI flags or install commands.
 
-### Prompt 7: Understand lineage
+### Prompt 8: Understand lineage
 
 ```
 @models/marts/f_order_line.sql What does this model depend on? Trace the full lineage back to raw sources.
@@ -144,7 +150,7 @@ This project does not have a virtual environment or dbt packages installed. Set 
 
 > **Story:** "This project has no contracts, constraints and zero tests. That's a problem. Let's fix it."
 
-### Prompt 8: Add _schema.yml
+### Prompt 9: Add _schema.yml
 
 ```text
 This project has no model and column properties defined for the mart models. Make a plan to add a `_schema.yml` file to models/marts/ with constraints for all mart models. Add top-level properties: name and description. Review each table and do your best to create a description based on your what you can glean from the table columns. Also add column properties: name, description, data_type as well as primary_key, foreign_key and not_null constraints. Exclude fact tables at this time as I want to focus on the dimensions first. Do not build yet, just create the YAML file.
@@ -152,7 +158,7 @@ This project has no model and column properties defined for the mart models. Mak
 
 **Expected result:** Cortex Code reads all the mart models, analyzes the columns, and generates a comprehensive `models/marts/_schema.yml` with model-level names and descriptions, column-level properties (name, description, data_type), and primary_key/foreign_key/not_null constraints -- all inferred from context.
 
-### Prompt 9: Commit the changes
+### Prompt 10: Commit the changes
 
 ```text
 Commit the changes
@@ -160,7 +166,7 @@ Commit the changes
 
 **Expected result:** Cortex Code stages the new and modified files, generates a meaningful commit message summarizing the schema additions, and commits. It understands the context of what changed -- no copy-pasting or context switching.
 
-### Prompt 10: Add Tests and Think Through Something
+### Prompt 11: Add Tests and Think Through Something
 
 Often times when building, I ask questions of the Cortex Code that I may be pretty sure of, but it can help validate my thinking.
 
@@ -170,7 +176,7 @@ This project has no tests for the mart models. Add tests for all mart models but
 
 **Expected result:** Cortex Code adds `unique` tests on every primary key and `relationships` tests linking foreign keys (e.g., `f_order.truck_key` -> `d_truck.truck_key`). It also provides a thoughtful response about not_null tests vs constraints -- reasoning about tradeoffs and helping make informed decisions, not just generating code.
 
-### Prompt 11: Build the dimension models
+### Prompt 12: Build the dimension models
 
 ```
 Build the mart dimension models only.
@@ -178,13 +184,13 @@ Build the mart dimension models only.
 
 **Expected result:** Cortex Code runs `dbt build` selecting only the dimension models, materializing them as tables in Snowflake. One prompt, no need to remember dbt selector syntax.
 
-### Prompt 12: Add Enforced Contracts
+### Prompt 13: Add Enforced Contracts
 
 ```text
 I want to use dbt contracts to define a set of upfront "guarantees" on model definitions. Add contracts to the mart models.
 ```
 
-### Prompt 13: Run the tests
+### Prompt 14: Run the tests
 
 ```
 Run dbt test for the dimension marts models only and show me the results. If any tests fail, diagnose and fix them.
@@ -194,7 +200,7 @@ Run dbt test for the dimension marts models only and show me the results. If any
 
 ---
 
-### Prompt 14: Compact the context
+### Prompt 15: Compact the context
 
 We've done a lot of work -- schema generation, test writing, builds. The conversation context is getting long, which can slow down responses and use up the context window. Let's compact it before starting fresh.
 
@@ -210,7 +216,7 @@ We've done a lot of work -- schema generation, test writing, builds. The convers
 
 > **Story:** "The business team wants a daily sales summary. Let's build it."
 
-### Prompt 15: Fork before building
+### Prompt 16: Fork before building
 
 ```
 /fork before-new-model
@@ -220,7 +226,7 @@ We've done a lot of work -- schema generation, test writing, builds. The convers
 
 > **Aside:** `/fork` and `/rewind` are session management commands. `/fork` creates a non-destructive branch (keeps the original). `/rewind` rolls back destructively (discards messages). We'll see both in action.
 
-### Prompt 16: Build the wrong thing (intentional)
+### Prompt 17: Build the wrong thing (intentional)
 
 ```
 Build a new mart model called daily_sales that has columns for date, total_revenue, and total_orders. Materialize it as a view.
@@ -228,7 +234,7 @@ Build a new mart model called daily_sales that has columns for date, total_reven
 
 **Expected result:** Cortex Code builds the model -- but it's wrong. The name doesn't follow the `f_` prefix convention, it's missing the truck/location/menu item grain we actually want, and it's materialized as a view instead of a table. This is intentional -- we're about to undo it.
 
-### Prompt 17: Rewind the mistake
+### Prompt 18: Rewind the mistake
 
 ```
 /rewind 1
@@ -236,7 +242,7 @@ Build a new mart model called daily_sales that has columns for date, total_reven
 
 **Expected result:** Cortex Code rolls back one user message, discarding the bad model build from the conversation. However, `/rewind` only rolls back the *conversation state* -- any files written to disk or tables materialized in Snowflake are still there. We need to clean those up.
 
-### Prompt 18: Clean up the mess
+### Prompt 19: Clean up the mess
 
 ```
 Delete the daily_sales model file and drop the table in Snowflake if it was created.
@@ -246,7 +252,7 @@ Delete the daily_sales model file and drop the table in Snowflake if it was crea
 
 > **Aside:** `/rewind` is destructive -- it throws away everything after the rewind point. Use `/fork` when you might want to come back, and `/rewind` when you know the recent work was wrong. Remember that `/rewind` only affects the conversation -- any side effects (files, tables, git commits) need to be cleaned up separately.
 
-### Prompt 19: Build the model correctly
+### Prompt 20: Build the model correctly
 
 ```
 @models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the _schema.yml with appropriate tests. Then compile and run it.
@@ -254,7 +260,7 @@ Delete the daily_sales model file and drop the table in Snowflake if it was crea
 
 **Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/_schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
 
-### Prompt 20: Query the results
+### Prompt 21: Query the results
 
 ```
 #DEV_DBT_DEMO.CURATED.F_DAILY_SALES_SUMMARY Show me the top 10 days by total revenue
@@ -268,7 +274,7 @@ Delete the daily_sales model file and drop the table in Snowflake if it was crea
 
 > **Story:** "While I'm here, let me answer a few quick business questions."
 
-### Prompt 21: Business question
+### Prompt 22: Business question
 
 ```
 #DEV_DBT_DEMO.CURATED.F_ORDER_LINE #DEV_DBT_DEMO.CURATED.D_MENU_ITEM What are the top 5 menu items by total revenue?
@@ -276,7 +282,7 @@ Delete the daily_sales model file and drop the table in Snowflake if it was crea
 
 **Expected result:** Both `#` mentions inject their schemas into context, so Cortex Code sees the join key and revenue columns before writing a single line of SQL. It writes and executes a query joining the two tables, returning a formatted results table.
 
-### Prompt 22: Another business question
+### Prompt 23: Another business question
 
 ```
 #DEV_DBT_DEMO.CURATED.D_LOYALTY_MEMBER How many loyalty members signed up each year?
@@ -290,7 +296,7 @@ Delete the daily_sales model file and drop the table in Snowflake if it was crea
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 23: Commit
+### Prompt 24: Commit
 
 ```
 Commit all changes with an appropriate message
@@ -487,6 +493,6 @@ export DBT_ENV_SECRET_PAT="<your_programmatic_access_token>"
 
 ### 7. Do NOT Create a Virtual Environment
 
-The demo script intentionally creates the venv and installs dependencies **live** during Prompt 6. This is a key demo moment showing Cortex Code's ability to set up a project from scratch.
+The demo script intentionally creates the venv and installs dependencies **live** during Prompt 7. This is a key demo moment showing Cortex Code's ability to set up a project from scratch.
 
 If you create `.venv/` or run `dbt deps` beforehand, that demo moment is lost. The [Pre-Demo Checklist](#pre-demo-checklist) includes a step to delete `.venv/` to ensure a clean state.

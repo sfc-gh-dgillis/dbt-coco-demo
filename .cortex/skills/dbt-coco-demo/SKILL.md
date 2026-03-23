@@ -52,7 +52,7 @@ Check the status of each prerequisite before running it -- skip steps that are a
 
 When the user wants to reset, clean, tear down, or start over, run these steps in order:
 
-1. **Check the current branch.** If not on `main`, inform the user and ask if they want to switch. Explain that the demo script includes creating a dev branch as a live demo moment (Prompt 4 in Act 1), so starting from `main` ensures a clean slate and keeps that step intact. If they confirm, switch and pull latest:
+1. **Check the current branch.** If not on `main`, inform the user and ask if they want to switch. Explain that the demo script includes creating a dev branch as a live demo moment (Prompt 5 in Act 1), so starting from `main` ensures a clean slate and keeps that step intact. If they confirm, switch and pull latest:
 ```bash
 # Check current branch
 git branch --show-current
