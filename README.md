@@ -39,7 +39,11 @@ It's a dbt project, but that's all you know. Let's use Cortex Code to explore an
 
 ### Prompt 1: Choose a model
 
-Cortex Code supports multiple LLM models. You can switch models at any time during a session with the `/model` command, or set one at launch with `cortex --model <identifier>`.
+Cortex Code supports multiple LLM models. You can switch models at any time during a session with the `/model` command, or set one at launch with `cortex --model <identifier>`. For example, to launch with Claude Opus 4.6:
+
+```bash
+cortex --model claude-opus-4-6
+```
 
 | Model | Identifier | Best For |
 |-------|-----------|----------|
