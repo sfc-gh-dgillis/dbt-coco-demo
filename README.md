@@ -218,7 +218,7 @@ We've done a lot of work -- schema generation, test writing, builds. The convers
 
 ## Act 3: New Feature Build (~3-4 min)
 
-> **Story:** "The business team wants a daily sales summary. Let's build it."
+> **Story:** "Let's analyze menu item profitability."
 
 ### Prompt 16: Fork before building
 
@@ -233,10 +233,10 @@ We've done a lot of work -- schema generation, test writing, builds. The convers
 ### Prompt 17: Build the wrong thing (intentional)
 
 ```
-Build a new mart model called daily_sales that has columns for date, total_revenue, and total_orders. Materialize it as a view.
+Build a new mart model called menu_profitability that shows profit margin per menu item. Include the item name, brand, category, cost, price, and margin. Materialize it as a view.
 ```
 
-**Expected result:** Cortex Code builds the model -- but it's wrong. The name doesn't follow the `f_` prefix convention, it's missing the truck/location/menu item grain we actually want, and it's materialized as a view instead of a table. This is intentional -- we're about to undo it.
+**Expected result:** Cortex Code builds the model -- but it's wrong. The name doesn't follow the `d_` or `f_` prefix convention, it uses no surrogate keys, and it's materialized as a view instead of a table. This is intentional -- we're about to undo it.
 
 ### Prompt 18: Rewind the mistake
 
@@ -249,25 +249,25 @@ Build a new mart model called daily_sales that has columns for date, total_reven
 ### Prompt 19: Clean up the mess
 
 ```
-Delete the daily_sales model file and drop the table in Snowflake if it was created.
+Delete the menu_profitability model file and drop the view in Snowflake if it was created.
 ```
 
-**Expected result:** Cortex Code removes the file from disk and drops the table from Snowflake. This is the full undo -- conversation rewound, file deleted, table dropped. Now we can re-prompt with the correct requirements.
+**Expected result:** Cortex Code removes the file from disk and drops the view from Snowflake. This is the full undo -- conversation rewound, file deleted, view dropped. Now we can re-prompt with the correct requirements.
 
 > **Aside:** `/rewind` is destructive -- it throws away everything after the rewind point. Use `/fork` when you might want to come back, and `/rewind` when you know the recent work was wrong. Remember that `/rewind` only affects the conversation -- any side effects (files, tables, git commits) need to be cleaned up separately.
 
 ### Prompt 20: Build the model correctly
 
 ```
-@models/marts/f_order.sql Build a new mart model called f_daily_sales_summary that aggregates daily revenue by truck, location, and menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Add it to the _schema.yml with appropriate tests. Then compile and run it.
+@models/marts/d_menu_item.sql Build a new mart model called f_menu_profitability that calculates profit margin per menu item. It should follow the conventions in this file -- use surrogate keys, ref() macros, and the same SQL style. Materialize as a table. Add it to _schema.yml with appropriate tests. Then compile and run it.
 ```
 
-**Expected result:** The `@` mention gives Cortex Code the existing `f_order.sql` as a concrete style reference. It writes `models/marts/f_daily_sales_summary.sql`, adds it to `models/marts/_schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
+**Expected result:** The `@` mention gives Cortex Code the existing `d_menu_item.sql` as a concrete style reference. It writes `models/marts/f_menu_profitability.sql`, adds it to `models/marts/_schema.yml` with tests, compiles, and materializes it. Because it had the actual file to reference (not just a verbal instruction to "match conventions"), the output matches the surrogate key pattern, naming conventions, and SQL formatting precisely.
 
 ### Prompt 21: Query the results
 
 ```
-#DEV_DBT_DEMO.CURATED.F_DAILY_SALES_SUMMARY Show me the top 10 days by total revenue
+#DEV_DBT_DEMO.MODELED.F_MENU_PROFITABILITY Show me the top 5 most profitable menu items by margin percentage
 ```
 
 **Expected result:** The `#` prefix auto-injects the table's column schema and sample rows into the prompt, so Cortex Code knows exactly what columns are available without guessing. It runs a SQL query directly against Snowflake and returns a formatted result table -- no context switching to another tool.
