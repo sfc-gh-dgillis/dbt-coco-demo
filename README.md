@@ -149,10 +149,14 @@ Create a new branch called dbt-coco-demo-dev and switch to it
 Cortex Code connects directly to Snowflake -- no extra configuration, no context switching to a SQL IDE. Let's use that to get a feel for the raw data before we start building.
 
 ```
-Run row counts on all the raw source tables and give me a summary of what data we're working with. Describe the key tables.
+#DEV_DBT_DEMO.RAW.MENU What does this raw menu data look like? Also run row counts on all the raw source tables and give me a summary of what data we're working with.
 ```
 
-**Expected result:** Cortex Code executes SQL directly against Snowflake, returning row counts for all source tables and a plain-English summary of the data -- table purposes, key columns, and approximate scale. No need to open Snowsight or a SQL IDE.
+**Expected result:** The `#` prefix auto-injects the table's column schema and a sample of rows directly into the prompt, so Cortex Code immediately sees what columns exist and what the data looks like. It describes the menu table in detail, then executes SQL against Snowflake for row counts across all source tables and returns a plain-English summary. No need to open Snowsight or a SQL IDE.
+
+> **Aside: `#` table mentions**
+>
+> The `#` prefix works like `@` for files, but for Snowflake tables. When you type `#DB.SCHEMA.TABLE`, Cortex Code auto-injects the table's column schema and a sample of rows into the prompt context. This means it knows exact column names, data types, and what the data looks like -- no guessing, no `DESCRIBE TABLE` needed. You can mention multiple tables in a single prompt to give it join context. You'll see this used throughout Acts 3 and 4 for querying mart tables directly.
 
 ### Prompt 7: Setup dbt
 
@@ -303,7 +307,7 @@ Delete the menu_profitability model file and drop the view in Snowflake if it wa
 ### Prompt 22: Business question
 
 ```
-#DEV_DBT_DEMO.CURATED.F_ORDER_LINE #DEV_DBT_DEMO.CURATED.D_MENU_ITEM What are the top 5 menu items by total revenue?
+#DEV_DBT_DEMO.MODELED.F_ORDER_LINE #DEV_DBT_DEMO.MODELED.D_MENU_ITEM What are the top 5 menu items by total revenue?
 ```
 
 **Expected result:** Both `#` mentions inject their schemas into context, so Cortex Code sees the join key and revenue columns before writing a single line of SQL. It writes and executes a query joining the two tables, returning a formatted results table.
@@ -311,10 +315,18 @@ Delete the menu_profitability model file and drop the view in Snowflake if it wa
 ### Prompt 23: Another business question
 
 ```
-#DEV_DBT_DEMO.CURATED.D_LOYALTY_MEMBER How many loyalty members signed up each year?
+#DEV_DBT_DEMO.MODELED.D_LOYALTY_MEMBER How many loyalty members signed up each year?
 ```
 
 **Expected result:** A quick query against the table, grouped by year. The `#` mention ensures Cortex Code knows the exact column name for the sign-up date without having to look it up. No SQL IDE needed -- explore data, build models, and run tests all in one place.
+
+### Prompt 24: Multi-table join
+
+```
+#DEV_DBT_DEMO.MODELED.F_ORDER_LINE #DEV_DBT_DEMO.MODELED.D_MENU_ITEM #DEV_DBT_DEMO.MODELED.D_TRUCK What are the top 3 best-selling menu items for each truck brand?
+```
+
+**Expected result:** Three `#` mentions inject all three table schemas at once, giving Cortex Code the join keys and columns across fact and dimension tables. It writes a multi-table join with window functions or grouping -- no manual schema lookup needed. This shows the real power of `#`: the more tables you mention, the more context Cortex Code has to write accurate, complex SQL in one shot.
 
 ---
 
@@ -322,7 +334,7 @@ Delete the menu_profitability model file and drop the view in Snowflake if it wa
 
 > **Story:** "Let's commit all of this."
 
-### Prompt 24: Commit
+### Prompt 25: Commit
 
 ```
 Commit all changes with an appropriate message
@@ -339,6 +351,7 @@ Commit all changes with an appropriate message
 3. **Full lifecycle** -- Explore -> Test -> Build -> Query -> Document -> Commit, all without leaving the CLI
 4. **Snowflake-native** -- Direct SQL execution against Snowflake, no extra configuration needed
 5. **Time savings** -- What we just did in 10 minutes would take a developer 2-4 hours manually
+6. **`@` and `#` context injection** -- `@` for files, `#` for Snowflake tables. Auto-injects schemas, sample data, and file contents so Cortex Code writes accurate code and SQL without guessing
 
 ---
 
