@@ -8,28 +8,6 @@ A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstra
 
 ---
 
-## Demo Overview
-
-This demo walks through a realistic developer workflow: you've just inherited an unfamiliar dbt project from a colleague who left the company. Using Cortex Code, you go from zero understanding to a fully tested, extended, and committed codebase -- all from the CLI in about 10 minutes.
-
-**The data domain** is Tasty Bytes, a fictitious global food truck company. The project models three source systems -- point-of-sale transactions (orders, trucks, menus, locations), a customer loyalty program, and SafeGraph location/POI data -- across ~960 million rows of raw data landing in Snowflake.
-
-**The arc follows five acts:**
-
-1. **Orientation** -- Explore the unknown project using `@` file mentions and built-in skills. Cortex Code reads the dbt config, traces source definitions, assesses data quality on raw tables, checks the account's security posture, and sets up the dev environment (venv, dbt deps) live. By the end of this act, you understand the full data domain, model layers, and lineage without opening a single file manually.
-
-2. **Code Quality & Testing** -- The inherited project has no schema contracts, no column documentation, and zero tests. Cortex Code generates a comprehensive `_schema.yml` with model descriptions, column types, primary/foreign key constraints, and enforced contracts for all dimension models. It adds `unique` and `relationships` tests, builds the models, runs the test suite, and diagnoses any failures on the spot. This act shows Cortex Code as a thinking partner -- not just generating code, but reasoning about tradeoffs (e.g., whether `not_null` tests are redundant when Snowflake enforces constraints).
-
-3. **New Feature Build** -- Build a new `f_menu_profitability` mart model to analyze profit margins per menu item. This act demonstrates session management: `/fork` to checkpoint before building, an intentional mistake (wrong naming conventions, wrong materialization), `/rewind` to undo it, and then a correct rebuild using `@` file mentions to feed an existing model as a style reference. The model is compiled, materialized, tested, and queried -- all in a few prompts.
-
-4. **Ad-Hoc Data Exploration** -- Answer business questions directly from the terminal using `#` table mentions, which auto-inject column schemas so Cortex Code writes accurate SQL without guessing. Quick queries against the mart layer (top menu items by revenue, loyalty signups by year) show Cortex Code as a data exploration tool, not just a code generator.
-
-5. **Git Workflow (Bonus)** -- Commit all changes with a meaningful, auto-generated commit message. Reinforces that Cortex Code handles the full development lifecycle: explore, test, build, query, commit.
-
-**Key capabilities demonstrated throughout:** built-in and custom skills (dbt, data-quality, trust-center), `@` file mentions and `#` table mentions for precise context injection, direct SQL execution against Snowflake, native Git operations, session management (`/compact`, `/fork`, `/rewind`), and iterative problem-solving when builds or tests fail.
-
----
-
 ## Cortex Code CLI Demo Script
 
 **Scenario:** You just inherited a dbt project from a colleague. You've never seen it before. Use Cortex Code to understand it, improve it, and extend it -- all from the CLI.
@@ -50,6 +28,54 @@ Run through this before each demo to ensure a clean starting state.
 4. **Browser tab** — open Snowsight in a browser (optional, for showing query results visually)
 
 > **Important:** Do NOT create a virtual environment or install dbt deps before the demo. Prompt 7 does this live as a demo moment.
+
+---
+
+## Demo Overview
+
+You've just inherited an unfamiliar dbt project from a colleague who left the company. Using Cortex Code, you go from zero understanding to a fully tested, extended, and committed codebase -- all from the CLI in about 10 minutes.
+
+**Data domain:** Tasty Bytes, a fictitious global food truck company. Three source systems (POS, customer loyalty, SafeGraph location data), ~960 million rows of raw data in Snowflake.
+
+**The arc follows five acts:**
+
+**Act 1: Orientation** (~2 min)
+
+- Explain Cortex startup and AGENTS.md 
+- Choose an LLM model (`/model`)
+- Explore the project structure using `@` file mentions and the dbt skill
+- Assess data quality on raw source tables (`$data-quality`)
+- Check account security posture (`$trust-center`)
+- Cut a dev branch (native Git)
+- Explore raw data using `#` table mentions for schema/sample injection
+- Set up the dev environment live (venv, dbt deps)
+- Trace model lineage back to raw sources
+
+**Act 2: Code Quality & Testing** (~3 min)
+- Generate `_schema.yml` with descriptions, data types, and constraints for all dimension marts
+- Commit the schema changes
+- Add `unique` and `relationships` tests; discuss tradeoffs (e.g., `not_null` tests vs enforced constraints)
+- Build dimension models
+- Add enforced dbt contracts
+- Run the test suite and diagnose/fix any failures live
+- `/compact` to free up context window
+
+**Act 3: New Feature Build** (~3-4 min)
+- `/fork` to checkpoint the session before building
+- Build the wrong thing intentionally (bad naming, wrong materialization)
+- `/rewind` to undo the mistake, then clean up files and Snowflake objects
+- Rebuild correctly using `@` file mention as a style reference
+- Query the new model with `#` table mention
+
+**Act 4: Ad-Hoc Data Exploration** (~1-2 min)
+- Top menu items by revenue (`#` two-table join)
+- Loyalty signups by year (`#` single-table query)
+- Best-selling items by truck brand (`#` three-table join)
+
+**Act 5: Git Workflow** (bonus, ~30 sec)
+- Commit all changes with an auto-generated message
+
+**Key capabilities demonstrated:** built-in and custom skills (dbt, data-quality, trust-center), `@` file mentions and `#` table mentions for context injection, direct SQL execution, native Git, session management (`/compact`, `/fork`, `/rewind`), and iterative problem-solving when builds or tests fail.
 
 ---
 
