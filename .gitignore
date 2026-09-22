@@ -30,6 +30,7 @@ tasks.json
 
 # virtual environment
 .venv/
+venv/
 
 # dbt directories
 dbt_packages/
