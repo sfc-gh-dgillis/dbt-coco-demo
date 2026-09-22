@@ -1,0 +1,9 @@
+manifest_version: 2
+type: DCM_PROJECT
+default_target: 'DEV'
+
+targets:
+  DEV:
+    account_identifier: JPB91864
+    project_name: 'DCM_PROJECTS.DCM.DEV_DBT_DEMO_BACKUP'
+    project_owner: ACCOUNTADMIN
