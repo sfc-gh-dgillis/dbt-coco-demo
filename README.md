@@ -35,7 +35,7 @@ Run through this before each demo to ensure a clean starting state.
 
 You've just inherited an unfamiliar dbt project from a colleague who left the company. Using Cortex Code, you go from zero understanding to a fully tested, extended, and committed codebase -- all from the CLI in about 10 minutes.
 
-**Data domain:** Tasty Bytes, a fictitious global food truck company. Three source systems (POS, customer loyalty, SafeGraph location data), ~960 million rows of raw data in Snowflake.
+**Data domain:** Tasty Bytes, a fictitious global food truck company. Three source systems (POS, customer loyalty, SafeGraph location data), ~922 million rows of raw data across 9 tables in Snowflake.
 
 **The arc follows five acts:**
 
@@ -49,7 +49,7 @@ You've just inherited an unfamiliar dbt project from a colleague who left the co
 - Cut a dev branch (native Git)
 - Explore raw data using `#` table mentions for schema/sample injection
 - Set up the dev environment live (`.venv/`, dbt deps)
-- Trace model lineage back to raw sources
+- Trace model lineage back to raw sources, then view the DAG with `/lineage`
 
 **Act 2: Code Quality & Testing** (~3 min)
 - Generate `_schema.yml` with descriptions, data types, and constraints for all dimension marts
@@ -57,7 +57,7 @@ You've just inherited an unfamiliar dbt project from a colleague who left the co
 - Add `unique` and `relationships` tests; discuss tradeoffs (e.g., `not_null` tests vs enforced constraints)
 - Build dimension models
 - Add enforced dbt contracts
-- Run the test suite and diagnose/fix any failures live
+- Run the test suite and diagnose/fix any failures live; verify correctness with the `dbt-verify` subagent
 - `/compact` to free up context window
 
 **Act 3: New Feature Build** (~3-4 min)
@@ -87,27 +87,20 @@ It's a dbt project, but that's all you know. Let's use Cortex Code to explore an
 
 ### Prompt 1: Choose a model
 
-Cortex Code supports multiple LLM models. You can switch models at any time during a session with the `/model` command, or set one at launch with `cortex --model <identifier>`. For example, to launch with Claude Opus 4.6:
+Cortex Code supports multiple LLM models. Run `/model` to see the live list available to **your** account and switch at any time mid-session, or set one at launch with `cortex --model <identifier>`:
 
 ```bash
-cortex --model claude-opus-4-6
+cortex --model claude-opus-5
 ```
 
-| Model | Identifier | Best For |
-|-------|-----------|----------|
-| **Auto (recommended)** | `auto` | Automatically selects the best available model for your account; upgrades as new models ship |
-| **Claude Opus 4.6** | `claude-opus-4-6` | Most capable -- complex reasoning, multi-step tasks, architectural planning |
-| **Claude Sonnet 4.6** | `claude-sonnet-4-6` | Strong balance of speed and quality for everyday development |
-| **Claude Opus 4.5** | `claude-opus-4-5` | Previous-gen flagship -- still excellent for complex work |
-| **Claude Sonnet 4.5** | `claude-sonnet-4-5` | Previous-gen default -- fast and reliable |
-| **Claude Sonnet 4.0** | `claude-4-sonnet` | Lightweight option with broad regional availability |
-| **OpenAI GPT 5.2** | `openai-gpt-5.2` | OpenAI's latest (preview) -- requires `AZURE_US` cross-region inference |
+> **Model names change often.** New models ship regularly and availability varies by account and region, so this guide deliberately does not pin an exhaustive list. `/model` is always the source of truth -- open it during the demo and read off what's actually there.
 
 **How to choose:**
-- Start with **`auto`** -- Cortex picks the best model available to your account and you automatically benefit when better models are released.
-- Use **Opus** when you need the highest quality: complex multi-file refactors, debugging tricky issues, or architectural decisions.
-- Use **Sonnet** for day-to-day work: building models, writing tests, exploring data, running queries.
-- **OpenAI GPT 5.2** is available in preview. It requires an ACCOUNTADMIN to enable cross-region inference to Azure US:
+- Start with **`auto`** -- Cortex picks the best model available to your account, and you automatically benefit when better models ship. This is the recommended default.
+- Reach for an **Opus** model when you need the highest quality: complex multi-file refactors, debugging tricky issues, or architectural decisions.
+- Use a **Sonnet** model for day-to-day work: building models, writing tests, exploring data, running queries.
+- The bracketed number next to each model in `/model` (for example `[1M]`, `[200K]`) is its **context window size** in tokens -- how much conversation, file content, and tool output it can hold before the session needs compacting. A larger window means longer sessions and more files in context at once. The `auto` entries show no number because they route across multiple models.
+- **OpenAI GPT** models are offered in preview. They require an ACCOUNTADMIN to enable cross-region inference to Azure US:
   ```sql
   ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'AZURE_US';
   ```
@@ -115,10 +108,10 @@ cortex --model claude-opus-4-6
 **Regional availability:** Not all models are available in every region. If a model isn't available in yours, enable [cross-region inference](https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions#cross-region-inference) by setting `CORTEX_ENABLED_CROSS_REGION` (requires ACCOUNTADMIN). Use `AWS_US` for best Claude Opus coverage, or `ANY_REGION` for broadest access.
 
 ```
-/model claude-opus-4-6
+/model
 ```
 
-**Expected result:** Cortex Code switches to the selected model. Use this to show the audience the available models and how easy it is to switch. This is a good moment to talk through the model tradeoffs before diving into the project.
+**Expected result:** Cortex Code opens the model picker showing exactly which models your account can use. Pick a current Opus model for the demo. This is a good moment to talk through the tradeoffs -- and to point out that `auto` means the audience never has to track model names themselves.
 
 ### Prompt 2: Explore the project
 
@@ -138,7 +131,7 @@ cortex --model claude-opus-4-6
 > - **Custom skills** are Markdown files you create in `.cortex/skills/` (project-level) or `~/.snowflake/cortex/skills/` (global) to encode your team's conventions. This project includes one: `dbt-coco-demo` (in `.cortex/skills/dbt-coco-demo/SKILL.md`), which knows how to set up, reset, build, and test the demo without you needing to remember any commands
 > - **Remote skills** can be pulled from Git repos and shared across your organization
 >
-> You can invoke a skill explicitly by prefixing it with `$` (e.g., `$data-quality`, `$lineage`), or Cortex Code activates the right skill automatically based on your prompt. Run `/skill list` to see all available skills.
+> You can invoke a skill explicitly by prefixing it with `$` (e.g., `$data-quality`, `$lineage`), or Cortex Code activates the right skill automatically based on your prompt. Run `/skill` to browse and manage available skills, or `cortex skill list` from a shell.
 
 ### Prompt 3: Check data quality on the source tables
 
@@ -200,6 +193,18 @@ This project does not have a virtual environment or dbt packages installed. Set 
 
 **Expected result:** The `@` mention feeds the model's SQL directly into the prompt so Cortex Code can see the `ref()` calls immediately. It traces the full lineage: `raw.order_detail -> stg_pos__order_detail -> f_order_line`. No manual file hunting -- `@` gives it the starting point, and the dbt skill traces the rest.
 
+Then show the same thing as a picture. `/lineage` opens an interactive full-screen DAG of the project:
+
+```
+/lineage
+```
+
+**Expected result:** A navigable graph of all 19 models -- 9 staging views feeding 10 mart tables -- rendered right in the terminal. Great visual payoff after the text-based trace, and a fast way to orient in an unfamiliar project.
+
+> **Aside: `/fdbt` for fast dbt introspection**
+>
+> Cortex Code ships a purpose-built dbt project explorer that is far faster than shelling out to dbt for structural questions. Try `/fdbt models`, `/fdbt lineage f_order_line`, or `/fdbt tests`. It reads the project directly, so it answers instantly without a dbt parse or a warehouse connection.
+
 ---
 
 ## Act 2: Code Quality & Testing (~3 min)
@@ -253,6 +258,16 @@ Run dbt test for the dimension marts models only and show me the results. If any
 ```
 
 **Expected result:** Cortex Code runs `dbt test --select marts` and shows pass/fail results. If any fail, it diagnoses and fixes them live -- it operates the dbt CLI and reacts to results, not just writes files.
+
+> **Aside: the `dbt-verify` subagent**
+>
+> A green `dbt test` run does not prove a model is *correct* -- it only proves the tests you wrote passed. Cortex Code bundles a **`dbt-verify`** subagent that goes further: it checks row counts against sources, spot-checks boundary values, validates that classification logic covers every case, and re-derives expected values straight from the source tables. Ask for it by name:
+>
+> ```text
+> Use the dbt-verify subagent to verify the dimension models are actually correct, not just passing tests.
+> ```
+>
+> There is a matching **`sql-verify`** subagent for ad-hoc SQL, which statically hunts for cartesian joins, fanout from one-to-many joins, NULL comparison traps, and integer-division precision loss. Both are worth showing to an audience that has been burned by silently-wrong data.
 
 ---
 
@@ -378,6 +393,8 @@ Commit all changes with an appropriate message
 4. **Snowflake-native** -- Direct SQL execution against Snowflake, no extra configuration needed
 5. **Time savings** -- What we just did in 10 minutes would take a developer 2-4 hours manually
 6. **`@` and `#` context injection** -- `@` for files, `#` for Snowflake tables. Auto-injects schemas, sample data, and file contents so Cortex Code writes accurate code and SQL without guessing
+7. **Infrastructure as code** -- the entire Snowflake environment behind this demo (database, schemas, warehouses, roles, grants, tables, file formats, stages) is a declarative [DCM project](https://docs.snowflake.com/en/user-guide/dcm-projects/dcm-projects-overview). `task demo-init` deploys it, `task destroy-demo` purges it, and `snow dcm plan` previews any drift. Cortex Code authored and debugged those definitions
+8. **Verification, not just generation** -- the `dbt-verify` and `sql-verify` subagents check that generated models and queries are actually *correct*, which is the part that matters when the output feeds a business decision
 
 ---
 
@@ -386,10 +403,56 @@ Commit all changes with an appropriate message
 | If this happens... | Do this... |
 |---|---|
 | `dbt test` fails | Let Cortex Code diagnose and fix it live -- this is actually a great demo moment |
-| Snowflake connection issues | Pre-run `dbt debug` before the demo to verify connectivity |
+| Snowflake connection issues | Run `/doctor` to diagnose the connection, or pre-run `dbt debug` before the demo to verify connectivity |
 | Model compilation error | Ask Cortex Code to fix it -- shows iterative problem-solving |
-| Running low on time | Skip Acts 5-6 (bonus) and go straight to closing |
+| Running low on time | Skip Act 5 (bonus) and go straight to closing |
 | Audience asks "can it do X?" | Try it live -- Cortex Code handles unexpected prompts well |
+
+---
+
+## Beyond the Script
+
+The scripted demo is deliberately tight. When the audience asks "can it do X?", these are all live and worth a detour.
+
+**Session & context control**
+
+| Capability | What to say |
+|---|---|
+| `/goal` | Set a persistent objective for a long task so the agent keeps its own progress on track |
+| `/qq` | Ask a side question without polluting the main conversation's context |
+| `/rewind` / `/unrewind` | Undo the last N user messages, then change your mind and restore them |
+| `/context`, `/stats` | Show exactly what is consuming the context window and how many tokens you have spent |
+| `cortex memory` | Preferences and conventions that persist across sessions, not just within one |
+| `cortex conversations search` | Search every past session -- "what did I do to that model last week?" |
+
+**Code quality & review**
+
+| Capability | What to say |
+|---|---|
+| `/review` (`/diff`) | Full-screen review of working-tree or staged changes before committing |
+| `/simplify` | Ask the agent to clean up what it just wrote -- reuse, dedupe, right altitude |
+| `/index`, `/tgrep` | Semantic code search: find files by *meaning* rather than exact string, which matters in a large monorepo |
+| `sql-verify` subagent | Static correctness review of a query: cartesian joins, fanout, NULL traps, integer division |
+
+**Scale & automation**
+
+| Capability | What to say |
+|---|---|
+| `/team` (`Ctrl+G`) | Multiple agents working in parallel with distinct ownership, for work that genuinely decomposes |
+| `/batch` | Fan out one uniform change across many files using isolated git worktrees, then open a PR |
+| `/background-agent` (`/bg`) | Hand a long task to a background agent and keep working in the foreground |
+| `/automation` | Schedule this work as a recurring Snowflake AGENT TASK -- a nightly freshness check or cost report |
+| `/loop` (`/cron`) | Schedule a recurring prompt within the session |
+
+**Governance & safety**
+
+| Capability | What to say |
+|---|---|
+| `/guardrails` | Restricted Session Scope -- make the agent's SQL read-only, or block specific roles, before letting it near a sensitive account |
+| `/permissions` | Per-tool approval rules and workspace trust |
+| `$trust-center`, `$data-governance`, `$cost-intelligence` | Bundled skills covering security posture, masking/classification, and credit spend |
+
+Run `/help` for the full command list, or `/skill` to browse every available skill.
 
 ---
 
@@ -400,19 +463,26 @@ The [dbt-codegen package](https://github.com/dbt-labs/dbt-codegen) provides tool
 ### Generating Source YAML from the command line
 
 ```shell
-dbt --quiet run-operation generate_source --args '{"schema_name": "raw", "table_names":["country","franchise","location","menu","order_detail","order_header","truck"], "generate_columns": true}' > models/staging/pos/_source_pos.yml
+.venv/bin/dbt --quiet run-operation generate_source --target dev-keypair-auth \
+  --args '{"schema_name": "raw", "table_names":["country","franchise","location","menu","order_detail","order_header","truck"], "generate_columns": true}' \
+  > models/staging/pos/_source_pos.yml
 ```
+
+The loyalty and SafeGraph sources live in their own files (`_source_customer_loyalty.yml`, `_source_safegraph.yml`) -- pass only the relevant `table_names` for each.
 
 ### Generating Staging Model for a source from the command line
 
 ```shell
-dbt --quiet run-operation generate_base_model --args '{"source_name": "raw", "table_name": "customer_loyalty"}' > models/staging/loyalty/stg_loyalty__customer_loyalty.sql
+.venv/bin/dbt --quiet run-operation generate_base_model --target dev-keypair-auth \
+  --args '{"source_name": "raw", "table_name": "customer_loyalty"}' \
+  > models/staging/loyalty/stg_loyalty__customer_loyalty.sql
 ```
 
 ### Generating Model YAML from the command line
 
 ```shell
-dbt run-operation generate_model_yaml --args '{"model_names": ["model_name"], "upstream_descriptions": True, "include_data_types": True}'
+.venv/bin/dbt run-operation generate_model_yaml --target dev-keypair-auth \
+  --args '{"model_names": ["d_country"], "upstream_descriptions": true, "include_data_types": true}'
 ```
 
 ---
@@ -430,7 +500,7 @@ Install these tools on your machine:
 | **git** | [git-scm.com](https://git-scm.com/) |
 | **Python 3.10+** | [python.org](https://www.python.org/downloads/) |
 | **uv** | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
-| **Snowflake CLI 3.16+** | `pip install snowflake-cli --upgrade` ([installation docs](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)) |
+| **Snowflake CLI 3.24+** | Required for the DCM Projects commands this demo uses. `pip install snowflake-cli --upgrade` ([installation docs](https://docs.snowflake.com/en/developer-guide/snowflake-cli/installation/installation)) |
 | **Cortex Code CLI** | `snow cortex code install` (requires Snowflake CLI above) |
 
 ### 2. Clone the Repo
@@ -478,7 +548,7 @@ under `tasks/snow-cli/dcm/`. One command stands up the whole environment:
 task demo-init
 ```
 
-This requires Snowflake CLI 3.16+ and a connection with ACCOUNTADMIN available
+This requires Snowflake CLI 3.24+ and a connection with ACCOUNTADMIN available
 (the deployment creates account-level roles and grants).
 
 The task runs four steps:

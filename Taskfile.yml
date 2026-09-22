@@ -52,7 +52,7 @@ tasks:
     cmds:
       - task: validate-prerequisites:snowcli-version
         vars:
-          MIN_VERSION: "3.16.0"
+          MIN_VERSION: "3.24.0"
       - task: snow-cli:deploy-dcm-project
         vars:
           CLI_CONNECTION_NAME: $CLI_CONNECTION_NAME
