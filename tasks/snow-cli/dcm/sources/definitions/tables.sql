@@ -1,6 +1,5 @@
 -- =============================================================================
 -- Raw Tables
--- Source: batch-2/5_load_raw_data.sql
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -8,7 +7,7 @@
 -- -----------------------------------------------------------------------------
 
 -- Country
-DEFINE TABLE DEV_DBT_DEMO.RAW.COUNTRY (
+DEFINE TABLE {{ db }}.RAW.COUNTRY (
     COUNTRY_ID      NUMBER(18,0),
     COUNTRY         VARCHAR,
     ISO_CURRENCY    VARCHAR(3),
@@ -19,7 +18,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.COUNTRY (
 );
 
 -- Franchise
-DEFINE TABLE DEV_DBT_DEMO.RAW.FRANCHISE (
+DEFINE TABLE {{ db }}.RAW.FRANCHISE (
     FRANCHISE_ID    NUMBER(38,0),
     FIRST_NAME      VARCHAR,
     LAST_NAME       VARCHAR,
@@ -30,7 +29,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.FRANCHISE (
 );
 
 -- Location
-DEFINE TABLE DEV_DBT_DEMO.RAW.LOCATION (
+DEFINE TABLE {{ db }}.RAW.LOCATION (
     LOCATION_ID      NUMBER(19,0),
     PLACEKEY         VARCHAR,
     LOCATION         VARCHAR,
@@ -41,7 +40,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.LOCATION (
 );
 
 -- Menu
-DEFINE TABLE DEV_DBT_DEMO.RAW.MENU (
+DEFINE TABLE {{ db }}.RAW.MENU (
     MENU_ID                       NUMBER(19,0),
     MENU_TYPE_ID                  NUMBER(38,0),
     MENU_TYPE                     VARCHAR,
@@ -56,7 +55,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.MENU (
 );
 
 -- Truck
-DEFINE TABLE DEV_DBT_DEMO.RAW.TRUCK (
+DEFINE TABLE {{ db }}.RAW.TRUCK (
     TRUCK_ID           NUMBER(38,0),
     MENU_TYPE_ID       NUMBER(38,0),
     PRIMARY_CITY       VARCHAR,
@@ -75,7 +74,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.TRUCK (
 );
 
 -- Order Header (~248M rows)
-DEFINE TABLE DEV_DBT_DEMO.RAW.ORDER_HEADER (
+DEFINE TABLE {{ db }}.RAW.ORDER_HEADER (
     ORDER_ID              NUMBER(38,0),
     TRUCK_ID              NUMBER(38,0),
     LOCATION_ID           FLOAT,
@@ -95,7 +94,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.ORDER_HEADER (
 );
 
 -- Order Detail (~674M rows)
-DEFINE TABLE DEV_DBT_DEMO.RAW.ORDER_DETAIL (
+DEFINE TABLE {{ db }}.RAW.ORDER_DETAIL (
     ORDER_DETAIL_ID            NUMBER(38,0),
     ORDER_ID                   NUMBER(38,0),
     MENU_ITEM_ID               NUMBER(38,0),
@@ -110,7 +109,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.ORDER_DETAIL (
 -- -----------------------------------------------------------------------------
 -- Customer Loyalty
 -- -----------------------------------------------------------------------------
-DEFINE TABLE DEV_DBT_DEMO.RAW.CUSTOMER_LOYALTY (
+DEFINE TABLE {{ db }}.RAW.CUSTOMER_LOYALTY (
     CUSTOMER_ID        NUMBER(38,0),
     FIRST_NAME         VARCHAR,
     LAST_NAME          VARCHAR,
@@ -131,7 +130,7 @@ DEFINE TABLE DEV_DBT_DEMO.RAW.CUSTOMER_LOYALTY (
 -- -----------------------------------------------------------------------------
 -- SafeGraph
 -- -----------------------------------------------------------------------------
-DEFINE TABLE DEV_DBT_DEMO.RAW.CORE_POI_GEOMETRY (
+DEFINE TABLE {{ db }}.RAW.CORE_POI_GEOMETRY (
     PLACEKEY             VARCHAR,
     PARENT_PLACEKEY      VARCHAR,
     SAFEGRAPH_BRAND_IDS  VARCHAR,

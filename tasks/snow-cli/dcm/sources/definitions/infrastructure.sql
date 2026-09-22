@@ -1,27 +1,26 @@
 -- =============================================================================
 -- Infrastructure: Database, Schemas, and Warehouses
--- Source: batch-1/1_create_warehouses.sql, batch-1/3_create_db_schema.sql
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- Database
 -- -----------------------------------------------------------------------------
-DEFINE DATABASE DEV_DBT_DEMO
+DEFINE DATABASE {{ db }}
     COMMENT = 'dbt demo database';
 
 -- -----------------------------------------------------------------------------
 -- Schemas
 -- -----------------------------------------------------------------------------
-DEFINE SCHEMA DEV_DBT_DEMO.RAW
+DEFINE SCHEMA {{ db }}.RAW
     COMMENT = 'dbt demo - RAW data landing schema';
 
-DEFINE SCHEMA DEV_DBT_DEMO.CURATED
+DEFINE SCHEMA {{ db }}.CURATED
     COMMENT = 'dbt demo - Curated object schema';
 
-DEFINE SCHEMA DEV_DBT_DEMO.MODELED
+DEFINE SCHEMA {{ db }}.MODELED
     COMMENT = 'dbt demo - Modeled object schema';
 
-DEFINE SCHEMA DEV_DBT_DEMO.UTILITIES
+DEFINE SCHEMA {{ db }}.UTILITIES
     COMMENT = 'dbt demo - global utilities and tools';
 
 -- -----------------------------------------------------------------------------

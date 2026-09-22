@@ -1,12 +1,11 @@
 -- =============================================================================
 -- Storage: File Formats and Stages
--- Source: batch-2/5_load_raw_data.sql
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
 -- File Formats
 -- -----------------------------------------------------------------------------
-DEFINE FILE FORMAT DEV_DBT_DEMO.RAW.CSV_FF
+DEFINE FILE FORMAT {{ db }}.RAW.CSV_FF
     TYPE = 'CSV'
     COMPRESSION = 'AUTO'
     FIELD_DELIMITER = ','
@@ -20,7 +19,7 @@ DEFINE FILE FORMAT DEV_DBT_DEMO.RAW.CSV_FF
 -- -----------------------------------------------------------------------------
 -- External Stages
 -- -----------------------------------------------------------------------------
-DEFINE STAGE DEV_DBT_DEMO.RAW.S3_TASTYBYTES
+DEFINE STAGE {{ db }}.RAW.S3_TASTYBYTES
     URL = 's3://sfquickstarts/frostbyte_tastybytes/'
-    FILE_FORMAT = DEV_DBT_DEMO.RAW.CSV_FF
+    FILE_FORMAT = {{ db }}.RAW.CSV_FF
     COMMENT = 'Public S3 stage for Tasty Bytes quickstart data';
