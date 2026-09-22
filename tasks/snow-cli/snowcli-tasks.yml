@@ -2,11 +2,6 @@ version: '3'
 
 tasks:
 
-  sort-and-process-sql-folder:
-    desc: Sorts and processes all SQL files in the given directory. Sorts and executes SQL files with numeric prefixes (e.g., 001-schema.sql)
-    cmds:
-      - python3 tasks/snow-cli/pyutil/snowclisp/snowclisp.py "{{.SQL_SORT_PROCESS_DIR}}" "{{.CLI_CONNECTION_NAME}}"
-
   upload-files-to-internal-named-stage:
     desc: Uploads all files from the given directory to a Snowflake Internal stage using the Snowflake CLI and PUT command.
     cmds:
@@ -20,7 +15,7 @@ tasks:
       - cd "{{.DCM_PROJECT_PATH}}" && snow dcm deploy "{{.DCM_PROJECT_IDENTIFIER}}" -c "{{.CLI_CONNECTION_NAME}}" --database "{{.DCM_DATABASE}}"
       - snow sql -f "{{.DCM_PROJECT_PATH}}/post_deploy.sql" -c "{{.CLI_CONNECTION_NAME}}" --role SYSADMIN
 
-  drop-database-if-exists:
-    desc: Drops the specified Snowflake database if it exists using the Snowflake CLI.
+  purge-dcm-project:
+    desc: Drops every Snowflake object managed by the DCM project (database, schemas, tables, warehouses, roles, grants, file formats, and stages). The DCM project object itself is retained.
     cmds:
-      - snow sql --connection "{{.CLI_CONNECTION_NAME}}" --query "DROP DATABASE IF EXISTS {{.DEMO_DATABASE_NAME}};"
+      - cd "{{.DCM_PROJECT_PATH}}" && snow dcm purge "{{.DCM_PROJECT_IDENTIFIER}}" -c "{{.CLI_CONNECTION_NAME}}" --database "{{.DCM_DATABASE}}" --force

@@ -49,10 +49,6 @@ tasks:
 
   demo-init:
     desc: Runs the full DCM deployment to stand up the required Snowflake infrastructure (database, schemas, roles, warehouses, tables, grants, and raw data load).
-    vars:
-      DCM_DATABASE: UTIL
-      DCM_SCHEMA: DCM_PROJECT_ARCHIVE
-      DCM_PROJECT_NAME: DBT_COCO_DEMO_DCM
     cmds:
       - task: validate-prerequisites:snowcli-version
         vars:
@@ -65,12 +61,14 @@ tasks:
           DCM_DATABASE: "{{.DCM_DATABASE}}"
 
   destroy-demo:
-    desc: Drops the demo database from Snowflake.
+    desc: Purges the DCM project, dropping every Snowflake object it manages (database, schemas, tables, warehouses, roles, and grants). The DCM project object is retained so `task demo-init` can redeploy.
     cmds:
-      - task: snow-cli:drop-database-if-exists
+      - task: snow-cli:purge-dcm-project
         vars:
           CLI_CONNECTION_NAME: $CLI_CONNECTION_NAME
-          DEMO_DATABASE_NAME: dev_dbt_demo
+          DCM_PROJECT_PATH: dcm
+          DCM_PROJECT_IDENTIFIER: "{{.DCM_DATABASE}}.{{.DCM_SCHEMA}}.{{.DCM_PROJECT_NAME}}"
+          DCM_DATABASE: "{{.DCM_DATABASE}}"
 
   reset-demo:
     desc: Remove all generated artifacts (venv, dbt_packages, logs, target, package-lock.yml)
