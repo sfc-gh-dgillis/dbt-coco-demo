@@ -3,16 +3,16 @@ version: '3'
 tasks:
 
   create-venv:
-    desc: Create a virtual environment named venv using uv
+    desc: Create a virtual environment named .venv using uv
     status:
-      - test -d "{{.ROOT_DIR}}/venv"
+      - test -d "{{.ROOT_DIR}}/.venv"
     cmds:
-      - uv venv "{{.ROOT_DIR}}/venv"
+      - uv venv "{{.ROOT_DIR}}/.venv"
 
   install-dbt:
     desc: Install dbt-core and dbt-snowflake into the virtual environment
     status:
-      - test -x "{{.ROOT_DIR}}/venv/bin/dbt"
+      - test -x "{{.ROOT_DIR}}/.venv/bin/dbt"
     cmds:
-      - uv pip install --python "{{.ROOT_DIR}}/venv/bin/python" dbt-core==1.11.7 dbt-snowflake
+      - uv pip install --python "{{.ROOT_DIR}}/.venv/bin/python" dbt-core==1.11.7 dbt-snowflake
 

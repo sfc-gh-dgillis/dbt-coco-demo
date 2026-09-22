@@ -73,4 +73,4 @@ tasks:
   reset-demo:
     desc: Remove all generated artifacts (venv, dbt_packages, logs, target, package-lock.yml)
     cmds:
-      - rm -rf venv dbt_packages logs target package-lock.yml
+      - rm -rf .venv dbt_packages logs target package-lock.yml

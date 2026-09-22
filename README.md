@@ -23,7 +23,7 @@ A Snowflake dbt demo project ("Tasty Bytes") for Solution Engineers to demonstra
 Run through this before each demo to ensure a clean starting state.
 
 1. **Open Cortex Code** in the `dbt-coco-demo` project directory root
-2. **Reset the demo** — tell Cortex Code to "reset the demo and switch to the main branch". The `dbt-coco-demo` skill cleans up artifacts (venv, dbt_packages, target, generated model files) and gets you back to a clean `main`
+2. **Reset the demo** — tell Cortex Code to "reset the demo and switch to the main branch". The `dbt-coco-demo` skill cleans up artifacts (`.venv/`, dbt_packages, target, generated model files) and gets you back to a clean `main`
 3. **Verify the environment** — ask Cortex Code to "verify the Snowflake connection and check that raw data exists". It runs `dbt debug` and a row count sanity check for you
 4. **Browser tab** — open Snowsight in a browser (optional, for showing query results visually)
 
@@ -48,7 +48,7 @@ You've just inherited an unfamiliar dbt project from a colleague who left the co
 - Check account security posture (`$trust-center`)
 - Cut a dev branch (native Git)
 - Explore raw data using `#` table mentions for schema/sample injection
-- Set up the dev environment live (venv, dbt deps)
+- Set up the dev environment live (`.venv/`, dbt deps)
 - Trace model lineage back to raw sources
 
 **Act 2: Code Quality & Testing** (~3 min)
@@ -190,7 +190,7 @@ Cortex Code connects directly to Snowflake -- no extra configuration, no context
 This project does not have a virtual environment or dbt packages installed. Set those up now. Ensure the virtual environment is added to .gitignore so it doesn't get committed.
 ```
 
-**Expected result:** The `dbt-coco-demo` skill activates automatically and handles the full setup: creates a virtual environment, installs dbt-core and dbt-snowflake, runs `dbt deps`, and verifies the Snowflake connection. It also adds the venv directory to `.gitignore`. The skill knows the exact versions and target to use -- no need to remember CLI flags or install commands.
+**Expected result:** The `dbt-coco-demo` skill activates automatically and handles the full setup: creates a virtual environment, installs dbt-core and dbt-snowflake, runs `dbt deps`, and verifies the Snowflake connection. It also adds the `.venv/` directory to `.gitignore`. The skill knows the exact versions and target to use -- no need to remember CLI flags or install commands.
 
 ### Prompt 8: Understand lineage
 
@@ -584,6 +584,6 @@ export DBT_ENV_SECRET_PAT="<your_programmatic_access_token>"
 
 ### 7. Do NOT Create a Virtual Environment
 
-The demo script intentionally creates the venv and installs dependencies **live** during Prompt 7. This is a key demo moment showing Cortex Code's ability to set up a project from scratch.
+The demo script intentionally creates `.venv/` and installs dependencies **live** during Prompt 7. This is a key demo moment showing Cortex Code's ability to set up a project from scratch.
 
 If you create `.venv/` or run `dbt deps` beforehand, that demo moment is lost. The [Pre-Demo Checklist](#pre-demo-checklist) includes a step to delete `.venv/` to ensure a clean state.

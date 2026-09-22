@@ -2,7 +2,7 @@ version: '3'
 
 vars:
   VENV_BIN:
-    sh: echo "{{.ROOT_DIR}}/venv/bin"
+    sh: echo "{{.ROOT_DIR}}/.venv/bin"
 
 tasks:
 
