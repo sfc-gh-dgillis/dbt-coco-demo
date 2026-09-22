@@ -26,6 +26,10 @@ tasks:
       - echo "WTF"
 #      - snow sql -c der -q "use warehouse dbt_demo_xs_wh; select dev_dbt_demo.utilities.udf_concatenate_object_values(to_object(parse_json('{\"key1\": \"value1\", \"key2\": \"value2\"}')));"
 
+  create-udf-generate-surrogate-key:
+    cmds:
+      - "{{.VENV_BIN}}/dbt run-operation create_udf_generate_surrogate_key --target \"{{.TARGET}}\" --args \"{{.ARGS}}\""
+
   build-all:
     cmds:
       - "{{.VENV_BIN}}/dbt build --target dev-tastyb --project-dir ."
