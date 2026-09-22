@@ -11,8 +11,8 @@
 
 USE ROLE SYSADMIN;
 
-CREATE DATABASE IF NOT EXISTS DCM_ADMIN
-    COMMENT = 'Admin database for DCM project management';
+CREATE DATABASE IF NOT EXISTS UTIL
+    COMMENT = 'Utilities database';
 
-CREATE SCHEMA IF NOT EXISTS DCM_ADMIN.PROJECTS
-    COMMENT = 'Schema for DCM project objects';
+CREATE SCHEMA IF NOT EXISTS UTIL.DCM_PROJECT_ARCHIVE
+    COMMENT = 'DCM projects for the dbt demo: dbt_demo_dev and dbt_demo_prod.';
