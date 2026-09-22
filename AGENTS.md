@@ -6,7 +6,7 @@ This is a Snowflake dbt demo project ("Tasty Bytes") designed for Snowflake Solu
 
 **Tech Stack:** dbt-core 1.11.7, dbt-snowflake, Python 3.12, Snowflake
 
-IMPORTANT: Any time you make changes to any files in this project, be sure to ask: "Tis I, CoCo! Would you like me to commit these changes to git, good gentleperson of Castle Snowflake?" If the answer is yes, then please commit the changes to git with a descriptive commit message. If the answer is no, then just continue. This will help ensure that our git history remains clean and meaningful, and that we can easily track the evolution of this project over time.
+IMPORTANT: Any time you make changes to any files in this project, be sure to ask: "Would you like me to commit these changes to git?" If the answer is yes, then commit the changes to git with a descriptive commit message. The first line of the commit message should be less than or equal to 50 characters. If the answer is no, then just continue. This will help ensure that our git history remains clean and meaningful, and that we can easily track the evolution of this project over time.
 
 ## Setup Commands
 
@@ -95,11 +95,14 @@ Do NOT read or modify `~/.dbt/profiles.yml` directly as it contains credentials.
 
 ## Custom Macros
 
-- `create_udf_concatenate_object_values` - Creates a Python UDF for surrogate key generation from OBJECT types
+- `create_udf_concatenate_object_values` - Creates a Python UDF that concatenates an OBJECT's values in key order, substituting a placeholder for nulls/empties
+- `create_udf_generate_surrogate_key` - Creates a SQL UDF that MD5_BINARY-hashes the output of `udf_concatenate_object_values` to produce a surrogate key (depends on the UDF above)
+
+Both macros take `database` and `schema` arguments and are invoked via `dbt run-operation`; see the `dbt:create-udf-*` Taskfile tasks.
 
 ## Important Notes
 
-- Default database: `dbt_demo` (prod) or `dev_dbt_demo` (dev)
+- Default database: `dev_dbt_demo`, deployed by the DCM project (`task demo-init`)
 - Default schema: `modeled` for marts, `raw` for sources
 - Staging models materialize as views
 - Mart models materialize as tables

@@ -39,3 +39,6 @@ logs/
 
 # .env files
 .env
+
+# DCM Projects rendered output
+out/

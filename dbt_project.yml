@@ -21,12 +21,6 @@ clean-targets:
 vars:
   "dbt_date:time_zone": "America/New_York"
 
-seeds:
-  tasty_bytes:
-    +schema: raw
-    tasty-data:
-      +enabled: "{{ var('load_source_data', false) }}"
-
 models:
   tasty_bytes:
     staging:

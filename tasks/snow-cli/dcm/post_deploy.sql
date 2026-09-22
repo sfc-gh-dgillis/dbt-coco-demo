@@ -1,15 +1,14 @@
 /*--
   Post-Deploy Script
   ==================
-  Objects and operations that DCM cannot manage declaratively:
-    - File formats (unsupported by DEFINE)
-    - External stages (unsupported by DEFINE)
+  Imperative operations that DCM cannot manage declaratively:
     - COPY INTO data loading (imperative DML)
+
+  The CSV file format and the S3 external stage are managed declaratively by
+  the DCM project; see sources/definitions/storage.sql.
 
   Run after: snow dcm deploy
   Usage:     snow sql -f dcm/post_deploy.sql -c <connection> --role SYSADMIN
-
-  Source: batch-2/5_load_raw_data.sql
 --*/
 
 -- =============================================================================
@@ -21,29 +20,7 @@ USE SCHEMA RAW;
 USE WAREHOUSE DBT_DEMO_L_WH;
 
 -- =============================================================================
--- 2. FILE FORMAT (unsupported by DEFINE)
--- =============================================================================
-CREATE OR REPLACE FILE FORMAT DEV_DBT_DEMO.RAW.CSV_FF
-    TYPE = 'CSV'
-    COMPRESSION = 'AUTO'
-    FIELD_DELIMITER = ','
-    RECORD_DELIMITER = '\n'
-    SKIP_HEADER = 1
-    FIELD_OPTIONALLY_ENCLOSED_BY = '"'
-    TRIM_SPACE = FALSE
-    ERROR_ON_COLUMN_COUNT_MISMATCH = FALSE
-    NULL_IF = ('NULL', 'null', '', '\\N');
-
--- =============================================================================
--- 3. EXTERNAL STAGE (unsupported by DEFINE — has URL)
--- =============================================================================
-CREATE OR REPLACE STAGE DEV_DBT_DEMO.RAW.S3_TASTYBYTES
-    COMMENT = 'Public S3 stage for Tasty Bytes quickstart data'
-    URL = 's3://sfquickstarts/frostbyte_tastybytes/'
-    FILE_FORMAT = DEV_DBT_DEMO.RAW.CSV_FF;
-
--- =============================================================================
--- 4. LOAD DATA VIA COPY INTO
+-- 2. LOAD DATA VIA COPY INTO
 -- =============================================================================
 
 -- Small dimension tables (fast loads)
@@ -76,7 +53,7 @@ COPY INTO DEV_DBT_DEMO.RAW.ORDER_DETAIL
     FROM @DEV_DBT_DEMO.RAW.S3_TASTYBYTES/raw_pos/order_detail/;
 
 -- =============================================================================
--- 5. VERIFY ROW COUNTS
+-- 3. VERIFY ROW COUNTS
 -- =============================================================================
 SELECT 'COUNTRY' AS TABLE_NAME, COUNT(*) AS ROW_COUNT FROM DEV_DBT_DEMO.RAW.COUNTRY
 UNION ALL SELECT 'FRANCHISE', COUNT(*) FROM DEV_DBT_DEMO.RAW.FRANCHISE

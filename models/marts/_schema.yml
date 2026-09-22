@@ -1,0 +1,504 @@
+version: 2
+
+models:
+  - name: d_country
+    description: >
+      Country and city geographic reference dimension. Each row represents a unique
+      country/city combination, providing geographic and currency reference data used
+      across other dimensions and facts. The surrogate key encodes both country_id and
+      city_id to support the compound grain.
+
+    columns:
+      - name: country_key
+        description: Surrogate primary key generated from country_id and city_id.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: country_id
+        description: Natural key for the country.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: country_name
+        description: Full display name of the country.
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+      - name: iso_currency_alpha_cd
+        description: ISO 4217 three-letter alphabetic currency code for the country (e.g. USD, CAD, GBP).
+        data_type: varchar
+
+      - name: iso_country_alpha_2_cd
+        description: ISO 3166-1 alpha-2 two-letter country code (e.g. US, CA, GB).
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+      - name: city_id
+        description: Natural key for the city within the country.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: city_name
+        description: Full display name of the city.
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+      - name: city_population
+        description: Population count of the city.
+        data_type: number
+
+  - name: d_franchise
+    description: >
+      Franchise owner dimension. Each row represents an individual franchise owner
+      who operates one or more Tasty Bytes food trucks. Contact details are included
+      for operational and communication purposes.
+
+    columns:
+      - name: franchise_key
+        description: Surrogate primary key generated from franchise_id.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: franchise_id
+        description: Natural key for the franchise owner.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: first_name
+        description: First name of the franchise owner.
+        data_type: varchar
+
+      - name: last_name
+        description: Last name of the franchise owner.
+        data_type: varchar
+
+      - name: city
+        description: City where the franchise owner is based.
+        data_type: varchar
+
+      - name: country
+        description: Country where the franchise owner is based.
+        data_type: varchar
+
+      - name: e_mail
+        description: Email address for the franchise owner.
+        data_type: varchar
+
+      - name: phone_number
+        description: Contact phone number for the franchise owner.
+        data_type: varchar
+
+  - name: d_location
+    description: >
+      Physical location dimension representing the venues and sites where Tasty Bytes
+      food trucks operate or park. Each row is a unique operating location, enriched
+      with a SafeGraph placekey for cross-referencing point-of-interest data.
+
+    columns:
+      - name: location_key
+        description: Surrogate primary key generated from location_id.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: location_id
+        description: Natural key for the operating location.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: placekey
+        description: >
+          SafeGraph Placekey — a global standard identifier for points of interest.
+          References the raw SafeGraph core_poi_geometry source table.
+        data_type: varchar
+
+      - name: location_name
+        description: Descriptive name of the location.
+        data_type: varchar
+
+      - name: city
+        description: City in which the location is situated.
+        data_type: varchar
+
+      - name: region
+        description: Region or state in which the location is situated.
+        data_type: varchar
+
+      - name: iso_country_code
+        description: ISO 3166-1 alpha-2 country code for the location's country.
+        data_type: varchar
+
+      - name: country
+        description: Country name in which the location is situated.
+        data_type: varchar
+
+  - name: d_loyalty_member
+    description: >
+      Customer loyalty program member dimension. Each row represents a unique enrolled
+      loyalty member. This model is materialized incrementally using customer_id as the
+      unique key, and is updated whenever a member record changes based on last_update_ts.
+      Note: this dimension does not use a surrogate key — customer_id serves as the
+      natural primary key.
+
+    columns:
+      - name: customer_id
+        description: Unique identifier for the loyalty program member. Natural primary key.
+        data_type: number
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: first_name
+        description: Member's first name. May be null for a small number of records.
+        data_type: varchar
+
+      - name: last_name
+        description: Member's last name.
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+      - name: city
+        description: City of residence for the member.
+        data_type: varchar
+
+      - name: country
+        description: Country of residence for the member.
+        data_type: varchar
+
+      - name: postal_code
+        description: Postal or ZIP code for the member's address.
+        data_type: varchar
+
+      - name: preferred_language
+        description: Member's preferred communication language.
+        data_type: varchar
+
+      - name: gender
+        description: Member's self-reported gender.
+        data_type: varchar
+
+      - name: favourite_brand
+        description: The Tasty Bytes food truck brand the member identifies as their favourite.
+        data_type: varchar
+
+      - name: marital_status
+        description: Member's self-reported marital status.
+        data_type: varchar
+
+      - name: children_count
+        description: Number of children reported by the member. Stored as varchar in the source system.
+        data_type: varchar
+
+      - name: sign_up_date
+        description: Date on which the member enrolled in the loyalty program.
+        data_type: date
+        constraints:
+          - type: not_null
+
+      - name: birthday_date
+        description: Member's date of birth.
+        data_type: date
+
+      - name: e_mail
+        description: Member's email address.
+        data_type: varchar
+
+      - name: phone_number
+        description: Member's contact phone number.
+        data_type: varchar
+
+      - name: last_update_ts
+        description: Timestamp of the most recent update to the member's record in the source system.
+        data_type: timestamp_ntz
+
+  - name: d_menu_item
+    description: >
+      Menu item dimension containing all food and beverage items offered across all
+      Tasty Bytes food truck brands. Includes pricing, food category classification,
+      and dietary/health attribute flags derived from the semi-structured health metrics
+      object in the source menu table.
+
+    columns:
+      - name: menu_item_key
+        description: Surrogate primary key generated from menu_item_id.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: menu_item_id
+        description: Natural key for the menu item.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: menu_item_name
+        description: Display name of the menu item as shown to customers.
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+      - name: item_category
+        description: High-level food category for the item (e.g. Beverage, Dessert, Main).
+        data_type: varchar
+
+      - name: item_subcategory
+        description: More specific sub-category within the item's category.
+        data_type: varchar
+
+      - name: menu_type_id
+        description: Foreign key to d_menu_type identifying the menu this item belongs to.
+        data_type: number
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            to: ref('d_menu_type')
+            to_columns: [menu_type_id]
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('d_menu_type')
+                field: menu_type_id
+
+      - name: menu_type
+        description: Denormalized display name of the menu type (e.g. BBQ, Sandwiches, Poutine).
+        data_type: varchar
+
+      - name: truck_brand_name
+        description: Denormalized name of the food truck brand that offers this item.
+        data_type: varchar
+
+      - name: is_healthy
+        description: Indicates whether the item is classified as healthy per the menu health metrics.
+        data_type: boolean
+
+      - name: is_dairy_free
+        description: Indicates whether the item contains no dairy ingredients.
+        data_type: boolean
+
+      - name: is_gluten_free
+        description: Indicates whether the item contains no gluten ingredients.
+        data_type: boolean
+
+      - name: has_nuts
+        description: Indicates whether the item contains nut ingredients.
+        data_type: boolean
+
+      - name: cost_of_goods_usd
+        description: Cost to produce or source the item, in US dollars.
+        data_type: number
+
+      - name: sale_price_usd
+        description: Customer-facing sale price for the item, in US dollars.
+        data_type: number
+
+  - name: d_menu_item_ingredients
+    description: >
+      Ingredient bridge dimension linking menu items to their individual ingredients.
+      Each row represents a single ingredient for a single menu item, creating a
+      many-to-many bridge between menu items and ingredients. Rows with no ingredients
+      are excluded at source.
+
+    columns:
+      - name: menu_item_ingredient_key
+        description: Surrogate primary key generated from menu_item_id and ingredient_name.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: menu_item_key
+        description: Surrogate foreign key to d_menu_item.
+        data_type: varchar
+        constraints:
+          - type: not_null
+          - type: foreign_key
+            to: ref('d_menu_item')
+            to_columns: [menu_item_key]
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('d_menu_item')
+                field: menu_item_key
+
+      - name: ingredient_name
+        description: Name of the ingredient used in the menu item.
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+  - name: d_menu_type
+    description: >
+      Menu type dimension representing the distinct cuisine categories offered across
+      all Tasty Bytes food truck brands. Each row is a unique menu type (e.g. BBQ,
+      Sandwiches, Poutine) that groups related menu items and is associated with
+      one or more truck brands.
+
+    columns:
+      - name: menu_type_key
+        description: Surrogate primary key generated from menu_type_id.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: menu_type_id
+        description: Natural key for the menu type.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: menu_type
+        description: Display name of the menu type (e.g. BBQ, Sandwiches, Poutine).
+        data_type: varchar
+        constraints:
+          - type: not_null
+
+  - name: d_truck
+    description: >
+      Food truck asset dimension containing vehicle details and operational metadata
+      for each truck in the Tasty Bytes fleet. Includes the vehicle's make, model,
+      manufacture year, type classification, and whether it is an electric vehicle.
+
+    columns:
+      - name: truck_key
+        description: Surrogate primary key generated from truck_id.
+        data_type: varchar
+        constraints:
+          - type: primary_key
+          - type: not_null
+        data_tests:
+          - unique
+
+      - name: truck_id
+        description: Natural key for the food truck.
+        data_type: number
+        constraints:
+          - type: not_null
+
+      - name: truck_year
+        description: Manufacture year of the truck vehicle.
+        data_type: number
+
+      - name: truck_make
+        description: Manufacturer brand of the truck vehicle (e.g. Ford, Freightliner).
+        data_type: varchar
+
+      - name: truck_model
+        description: Model name of the truck vehicle.
+        data_type: varchar
+
+      - name: truck_type
+        description: Type classification of the truck (e.g. food truck, trailer).
+        data_type: varchar
+
+      - name: is_electric
+        description: Indicates whether the truck is an electric vehicle.
+        data_type: boolean
+
+      - name: truck_opening_date
+        description: Date on which the truck began operations in the Tasty Bytes fleet.
+        data_type: date
+
+  - name: f_order
+    description: >
+      Order header fact table. Each row represents a single customer order placed at a
+      Tasty Bytes food truck, capturing the truck, location, customer, channel, timing,
+      and order-level monetary amounts.
+
+    columns:
+      - name: order_key
+        description: Surrogate primary key generated from order_id.
+        data_type: varchar
+        data_tests:
+          - unique
+
+      - name: order_id
+        description: Natural key for the order.
+        data_type: number
+
+      - name: truck_key
+        description: Surrogate foreign key to d_truck.
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('d_truck')
+                field: truck_key
+
+      - name: location_key
+        description: Surrogate foreign key to d_location.
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('d_location')
+                field: location_key
+
+      - name: customer_key
+        description: >
+          Surrogate key derived from customer_id. Note: d_loyalty_member uses customer_id
+          as its natural primary key (no surrogate), so no relationship test is defined here.
+        data_type: varchar
+
+  - name: f_order_line
+    description: >
+      Order line fact table. Each row represents a single line item within an order,
+      capturing the menu item purchased, quantity, unit price, and line total. Child
+      of f_order via order_key.
+
+    columns:
+      - name: order_line_key
+        description: Surrogate primary key generated from order_detail_id.
+        data_type: varchar
+        data_tests:
+          - unique
+
+      - name: order_detail_id
+        description: Natural key for the order line item.
+        data_type: number
+
+      - name: order_key
+        description: Surrogate foreign key to f_order.
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('f_order')
+                field: order_key
+
+      - name: menu_item_key
+        description: Surrogate foreign key to d_menu_item.
+        data_type: varchar
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('d_menu_item')
+                field: menu_item_key

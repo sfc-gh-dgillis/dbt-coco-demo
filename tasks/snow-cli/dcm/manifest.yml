@@ -4,7 +4,8 @@ default_target: 'DEV'
 
 targets:
   DEV:
-    project_name: 'DCM_ADMIN.PROJECTS.DBT_COCO_DEMO_DCM'
+    account_identifier: SFSENORTHAMERICA-DGILLIS_AWS_USEAST1_V1
+    project_name: 'UTIL.DCM_PROJECT_ARCHIVE.DBT_COCO_DEMO_DCM'
     project_owner: SYSADMIN
 
 templating:
