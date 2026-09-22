@@ -204,7 +204,7 @@ def main():
         sys.exit(1)
     
     try:
-        # Print directory being scanned (like snowclisp does)
+        # Print directory being scanned
         print(f"Scanning directory: {directory}")
         
         successful, failed, error_messages = upload_directory_to_stage(

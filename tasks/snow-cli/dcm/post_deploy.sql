@@ -9,8 +9,6 @@
 
   Run after: snow dcm deploy
   Usage:     snow sql -f dcm/post_deploy.sql -c <connection> --role SYSADMIN
-
-  Source: batch-2/5_load_raw_data.sql
 --*/
 
 -- =============================================================================

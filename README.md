@@ -468,36 +468,62 @@ Then set it as the active connection:
 cortex connections set my_demo_connection
 ```
 
-### 4. Snowflake Account Setup
+### 4. Snowflake Account Setup and Raw Data Load
 
-Run the batch-1 SQL scripts **in order** in a Snowflake worksheet (or via SnowSQL). These require SYSADMIN/SECURITYADMIN/ACCOUNTADMIN roles.
+All Snowflake infrastructure is managed declaratively as a
+[DCM project](https://docs.snowflake.com/en/user-guide/dcm-projects/dcm-projects-overview)
+under `tasks/snow-cli/dcm/`. One command stands up the whole environment:
 
-| Script | What It Creates | Role Required |
-|--------|----------------|---------------|
-| `tasks/snow-cli/sql/batch-1/1_create_warehouses.sql` | 6 warehouses (xs through xxl) | SYSADMIN |
-| `tasks/snow-cli/sql/batch-1/2_init_roles.sql` | 4 roles (rw, ro, data_engineer, analyst) | SECURITYADMIN |
-| `tasks/snow-cli/sql/batch-1/3_create_db_schema.sql` | `dev_dbt_demo` database + 4 schemas (raw, curated, modeled, utilities) | SYSADMIN |
-| `tasks/snow-cli/sql/batch-1/4_grants.sql` | Comprehensive grants for all roles/schemas/warehouses | ACCOUNTADMIN + SECURITYADMIN |
-
-> **Important:** The grants script (`4_grants.sql`) contains a `GRANT ROLE ... TO USER tastyb` statement on the last line. **Edit this to your own Snowflake username** before running.
-
-### 5. Load Raw Data
-
-Run the batch-2 data load script in a Snowflake worksheet:
-
-```
-tasks/snow-cli/sql/batch-2/5_load_raw_data.sql
+```bash
+task demo-init
 ```
 
-This script:
-- Creates an external stage pointing to the public Tasty Bytes S3 bucket (`s3://sfquickstarts/frostbyte_tastybytes/`)
-- Creates all 9 raw source tables in `dev_dbt_demo.raw`
-- Loads data via `COPY INTO` from the stage
-- Uses `dbt_demo_l_wh` (Large warehouse) for bulk loading
+This requires Snowflake CLI 3.16+ and a connection with ACCOUNTADMIN available
+(the deployment creates account-level roles and grants).
+
+The task runs four steps:
+
+| Step | What It Does |
+|------|--------------|
+| `pre_deploy.sql` | Creates `UTIL.DCM_PROJECT_ARCHIVE`, the parent schema for the DCM project object. A DCM project cannot `DEFINE` its own parent containers. |
+| `snow dcm create` | Creates the DCM project object `UTIL.DCM_PROJECT_ARCHIVE.DBT_COCO_DEMO_DCM`. |
+| `snow dcm deploy` | Deploys everything in `dcm/sources/definitions/`: the `dev_dbt_demo` database and its 4 schemas, 6 warehouses (xs through xxl), 4 roles, all grants, the 9 raw tables, the CSV file format, and the S3 external stage. |
+| `post_deploy.sql` | Loads the raw data via `COPY INTO` from the public Tasty Bytes S3 bucket. |
+
+The definition files are:
+
+| File | Defines |
+|------|---------|
+| `dcm/sources/definitions/infrastructure.sql` | Database, 4 schemas, 6 warehouses |
+| `dcm/sources/definitions/access.sql` | 4 roles (rw, ro, data_engineer, analyst), role hierarchy, and all grants |
+| `dcm/sources/definitions/tables.sql` | The 9 raw source tables |
+| `dcm/sources/definitions/storage.sql` | `CSV_FF` file format and the `S3_TASTYBYTES` external stage |
+
+> **Important:** `access.sql` ends with a `GRANT ROLE DBT_DEMO_DATA_ENGINEER TO USER tastyb`
+> statement. **Edit this to your own Snowflake username** before deploying.
+
+Because the deployment is declarative, re-running `task demo-init` is safe — DCM
+reconciles the account against the definitions rather than recreating objects.
+To preview changes without applying them:
+
+```bash
+cd tasks/snow-cli/dcm && snow dcm plan UTIL.DCM_PROJECT_ARCHIVE.DBT_COCO_DEMO_DCM --database UTIL
+```
+
+**Note:** `access.sql` uses
+[inherited grants](https://docs.snowflake.com/en/user-guide/inherited-grants-intro)
+(`GRANT INHERITED ... ON ALL`) so privileges apply to current *and* future objects.
+This needs a one-time account opt-in:
+
+```sql
+ALTER ACCOUNT SET FEATURE_RBAC_INHERITED_GRANTS = 'ENABLED';
+```
+
+### 5. Verify the Raw Data Load
 
 **Estimated time:** ~5-10 minutes (the order_header and order_detail tables are 248M and 674M rows respectively).
 
-**Verify** the load succeeded with the row count query at the end of the script:
+`post_deploy.sql` ends with a row count query. Expected results:
 
 | Table | Expected Rows |
 |-------|--------------|
