@@ -279,8 +279,9 @@ models:
             to_columns: [menu_type_id]
         data_tests:
           - relationships:
-              to: ref('d_menu_type')
-              field: menu_type_id
+              arguments:
+                to: ref('d_menu_type')
+                field: menu_type_id
 
       - name: menu_type
         description: Denormalized display name of the menu type (e.g. BBQ, Sandwiches, Poutine).
@@ -341,8 +342,9 @@ models:
             to_columns: [menu_item_key]
         data_tests:
           - relationships:
-              to: ref('d_menu_item')
-              field: menu_item_key
+              arguments:
+                to: ref('d_menu_item')
+                field: menu_item_key
 
       - name: ingredient_name
         description: Name of the ingredient used in the menu item.
@@ -447,16 +449,18 @@ models:
         data_type: varchar
         data_tests:
           - relationships:
-              to: ref('d_truck')
-              field: truck_key
+              arguments:
+                to: ref('d_truck')
+                field: truck_key
 
       - name: location_key
         description: Surrogate foreign key to d_location.
         data_type: varchar
         data_tests:
           - relationships:
-              to: ref('d_location')
-              field: location_key
+              arguments:
+                to: ref('d_location')
+                field: location_key
 
       - name: customer_key
         description: >
@@ -486,13 +490,15 @@ models:
         data_type: varchar
         data_tests:
           - relationships:
-              to: ref('f_order')
-              field: order_key
+              arguments:
+                to: ref('f_order')
+                field: order_key
 
       - name: menu_item_key
         description: Surrogate foreign key to d_menu_item.
         data_type: varchar
         data_tests:
           - relationships:
-              to: ref('d_menu_item')
-              field: menu_item_key
+              arguments:
+                to: ref('d_menu_item')
+                field: menu_item_key
