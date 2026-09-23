@@ -93,7 +93,7 @@ Cortex Code supports multiple LLM models. Run `/model` to see the live list avai
 cortex --model claude-opus-5
 ```
 
-> **Model names change often.** New models ship regularly and availability varies by account and region, so this guide deliberately does not pin an exhaustive list. `/model` is always the source of truth -- open it during the demo and read off what's actually there.
+> New models ship regularly and availability varies by account and region, so this guide deliberately does not pin an exhaustive list. `/model` is always the source of truth
 
 **How to choose:**
 - Start with **`auto`** -- Cortex picks the best model available to your account, and you automatically benefit when better models ship. This is the recommended default.
